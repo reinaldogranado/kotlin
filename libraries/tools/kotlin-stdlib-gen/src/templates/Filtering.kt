@@ -33,8 +33,8 @@ fun filtering(): List<GenericFunction> {
 
                 list = ArrayList<T>(resultSize)
                 if (this is List<T>) {
-                    for (index in n..size - 1) {
-                        list.add(this[index])
+                    for (item in listIterator(n)) {
+                        list.add(item)
                     }
                     return list
                 }
@@ -186,7 +186,7 @@ fun filtering(): List<GenericFunction> {
             """
         }
 
-        body(Lists, ArraysOfObjects, ArraysOfPrimitives) {
+        body(ArraysOfObjects, ArraysOfPrimitives) {
             """
             require(n >= 0) { "Requested element count $n is less than zero." }
             if (n == 0) return emptyList()
@@ -195,6 +195,23 @@ fun filtering(): List<GenericFunction> {
             val list = ArrayList<T>(n)
             for (index in size - n .. size - 1)
                 list.add(this[index])
+            return list
+            """
+        }
+        body(Lists) {
+            """
+            require(n >= 0) { "Requested element count $n is less than zero." }
+            if (n == 0) return emptyList()
+            val size = size
+            if (n >= size) return toList()
+            val list = ArrayList<T>(n)
+            if (this is RandomAccess) {
+                for (index in size - n .. size - 1)
+                    list.add(this[index])
+            } else {
+                for (item in listIterator(n))
+                    list.add(item)
+            }
             return list
             """
         }
@@ -300,6 +317,19 @@ fun filtering(): List<GenericFunction> {
             return emptyList()
             """
         }
+        body(Lists) {
+            """
+            if (!isEmpty()) {
+                val iterator = listIterator(size)
+                while (iterator.hasPrevious()) {
+                    if (!predicate(iterator.previous())) {
+                        return take(iterator.nextIndex() + 1)
+                    }
+                }
+            }
+            return emptyList()
+            """
+        }
 
         doc(Strings) { "Returns a string containing all characters except last characters that satisfy the given [predicate]." }
         doc(CharSequences) { "Returns a subsequence of this char sequence containing all characters except last characters that satisfy the given [predicate]." }
@@ -326,6 +356,21 @@ fun filtering(): List<GenericFunction> {
             for (index in lastIndex downTo 0) {
                 if (!predicate(this[index])) {
                     return drop(index + 1)
+                }
+            }
+            return toList()
+            """
+        }
+        body(Lists) {
+            """
+            if (isEmpty())
+                return emptyList()
+            val iterator = listIterator(size)
+            while (iterator.hasPrevious()) {
+                if (!predicate(iterator.previous())) {
+                    iterator.next()
+                    @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
+                    return iterator.toList(size - iterator.nextIndex())
                 }
             }
             return toList()

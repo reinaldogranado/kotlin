@@ -34,6 +34,21 @@ public inline fun <T> Iterator<T>.forEach(operation: (T) -> Unit) : Unit {
     for (element in this) operation(element)
 }
 
+@kotlin.internal.InlineExposed
+internal fun <T> Iterator<T>.toList(expectedSize: Int): List<T> {
+    if (!hasNext())
+        return emptyList()
+    val first = next()
+    if (!hasNext())
+        return listOf(first)
+    val result = ArrayList<T>(expectedSize)
+    result.add(first)
+    while (hasNext()) {
+        result.add(next())
+    }
+    return result
+}
+
 /**
  * Iterator transforming original `iterator` into iterator of [IndexedValue], counting index from zero.
  */
