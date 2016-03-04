@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.resolve.BindingContextUtils
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.DescriptorUtils.*
 import org.jetbrains.kotlin.types.CommonSupertypes.topologicallySortSuperclassesAndRecordAllInstances
 import org.jetbrains.kotlin.types.KotlinType
@@ -62,9 +63,10 @@ class ClassTranslator private constructor(
     private val descriptor = getClassDescriptor(context.bindingContext(), classDeclaration)
 
     private fun translateObjectLiteralExpression(): JsExpression {
-        if (descriptor.containingDeclaration is PackageFragmentDescriptor) return translate(context())
-
-        return translateObjectInsideClass(context())
+        return if (descriptor.containingDeclaration is ClassDescriptor && descriptor.kind == ClassKind.OBJECT)
+            translateObjectInsideClass(context())
+        else
+            translate(context())
     }
 
     private fun translate(declarationContext: TranslationContext = context()): JsInvocation {
@@ -80,21 +82,11 @@ class ClassTranslator private constructor(
         val properties = SmartList<JsPropertyInitializer>()
         val staticProperties = SmartList<JsPropertyInitializer>()
 
-        val isTopLevelDeclaration = context() == context
+        val qualifiedReference = context.getQualifiedReference(descriptor)
+        val scope = context().getScopeForDescriptor(descriptor)
+        val definitionPlace = DefinitionPlace(scope as JsObjectScope, qualifiedReference, staticProperties)
 
-        var qualifiedReference: JsNameRef? = null
-        if (isTopLevelDeclaration) {
-            var definitionPlace: DefinitionPlace? = null
-
-            if (!descriptor.kind.isSingleton && !isAnonymousObject(descriptor)) {
-                qualifiedReference = context.getQualifiedReference(descriptor)
-                val scope = context().getScopeForDescriptor(descriptor)
-                definitionPlace = DefinitionPlace(scope as JsObjectScope, qualifiedReference, staticProperties)
-            }
-
-            context = context.newDeclaration(descriptor, definitionPlace)
-        }
-
+        context = context.newDeclaration(descriptor, definitionPlace)
         context = fixContextForCompanionObjectAccessing(context)
 
         invocationArguments.add(getSuperclassReferences(context))
@@ -128,10 +120,8 @@ class ClassTranslator private constructor(
                 invocationArguments.add(JsLiteral.NULL)
             }
             else {
-                if (qualifiedReference != null) {
-                    // about "prototype" - see http://code.google.com/p/jsdoc-toolkit/wiki/TagLends
-                    invocationArguments.add(JsDocComment(JsAstUtils.LENDS_JS_DOC_TAG, JsNameRef("prototype", qualifiedReference)))
-                }
+                // about "prototype" - see http://code.google.com/p/jsdoc-toolkit/wiki/TagLends
+                invocationArguments.add(JsDocComment(JsAstUtils.LENDS_JS_DOC_TAG, JsNameRef("prototype", qualifiedReference)))
                 invocationArguments.add(JsObjectLiteral(properties, true))
             }
         }
@@ -229,7 +219,10 @@ class ClassTranslator private constructor(
     }
 
     private fun translateObjectInsideClass(outerClassContext: TranslationContext): JsExpression {
-        val outerDeclaration = descriptor.containingDeclaration.containingDeclaration
+        var outerDeclaration = descriptor.containingDeclaration.containingDeclaration
+        if (outerDeclaration != null && outerDeclaration !is ClassDescriptor) {
+            outerDeclaration = DescriptorUtils.getContainingClass(outerDeclaration)
+        }
         val scope = if (outerDeclaration != null)
             outerClassContext.getScopeForDescriptor(outerDeclaration)
         else
@@ -319,6 +312,10 @@ class ClassTranslator private constructor(
         }
 
         @JvmStatic fun generateObjectLiteral(objectDeclaration: KtObjectDeclaration, context: TranslationContext): JsExpression {
+            return ClassTranslator(objectDeclaration, context).translateObjectInsideClass(context)
+        }
+
+        @JvmStatic fun generateObjectDeclaration(objectDeclaration: KtObjectDeclaration, context: TranslationContext): JsExpression {
             return ClassTranslator(objectDeclaration, context).translateObjectLiteralExpression()
         }
 

@@ -157,14 +157,12 @@ public class TranslationContext {
     @NotNull
     public TranslationContext newDeclaration(@NotNull DeclarationDescriptor descriptor, @Nullable DefinitionPlace place) {
         DynamicContext dynamicContext = DynamicContext.newContext(getScopeForDescriptor(descriptor), getBlockForDescriptor(descriptor));
-        return new TranslationContext(this, staticContext, dynamicContext, aliasingContext, usageTracker, place,
-                                      descriptor);
+        return new TranslationContext(this, staticContext, dynamicContext, aliasingContext, usageTracker, place, descriptor);
     }
 
     @NotNull
     private TranslationContext innerWithAliasingContext(AliasingContext aliasingContext) {
-        return new TranslationContext(this, this.staticContext, this.dynamicContext, aliasingContext, this.usageTracker, null,
-                                      this.declarationDescriptor);
+        return new TranslationContext(this, staticContext, dynamicContext, aliasingContext, usageTracker, null, declarationDescriptor);
     }
 
     @NotNull
