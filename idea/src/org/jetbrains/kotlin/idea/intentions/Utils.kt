@@ -155,6 +155,14 @@ private fun KtExpression.specialNegation(): KtExpression? {
             return factory.createExpressionByPattern("$0 $1 $2", left, getNegatedOperatorText(operator), right)
         }
 
+        is KtIsExpression -> {
+            val operator = operationReference.getReferencedNameElementType()
+            if (operator !in NEGATABLE_OPERATORS) return null
+            val left = leftHandSide
+            val right = typeReference ?: return null
+            return factory.createExpressionByPattern("$0 $1 $2", left, getNegatedOperatorText(operator), right)
+        }
+
         is KtConstantExpression -> {
             return when (text) {
                 "true" -> factory.createExpression("false")
