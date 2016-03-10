@@ -46,6 +46,7 @@ import static org.jetbrains.kotlin.js.translate.utils.AnnotationsUtils.*;
 import static org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils.*;
 import static org.jetbrains.kotlin.js.translate.utils.ManglingUtils.getMangledName;
 import static org.jetbrains.kotlin.js.translate.utils.ManglingUtils.getSuggestedName;
+import static org.jetbrains.kotlin.resolve.DescriptorUtils.isCompanionObject;
 import static org.jetbrains.kotlin.resolve.DescriptorUtils.isExtension;
 import static org.jetbrains.kotlin.resolve.calls.tasks.DynamicCallsKt.isDynamic;
 
@@ -305,7 +306,8 @@ public final class StaticContext {
             Rule<JsName> constructorOrCompanionObjectHasTheSameNameAsTheClass = new Rule<JsName>() {
                 @Override
                 public JsName apply(@NotNull DeclarationDescriptor descriptor) {
-                    if (descriptor instanceof ConstructorDescriptor && ((ConstructorDescriptor) descriptor).isPrimary()) {
+                    if (descriptor instanceof ConstructorDescriptor && ((ConstructorDescriptor) descriptor).isPrimary() ||
+                        DescriptorUtils.isCompanionObject(descriptor) && isNativeObject(descriptor)) {
                         //noinspection ConstantConditions
                         return getNameForDescriptor(descriptor.getContainingDeclaration());
                     }
@@ -532,7 +534,8 @@ public final class StaticContext {
             Rule<JsExpression> constructorOrCompanionObjectHasTheSameQualifierAsTheClass = new Rule<JsExpression>() {
                 @Override
                 public JsExpression apply(@NotNull DeclarationDescriptor descriptor) {
-                    if (descriptor instanceof ConstructorDescriptor || DescriptorUtils.isCompanionObject(descriptor)) {
+                    if (descriptor instanceof ConstructorDescriptor ||
+                        isNativeObject(descriptor) && DescriptorUtils.isCompanionObject(descriptor)) {
                         //noinspection ConstantConditions
                         return getQualifierForDescriptor(descriptor.getContainingDeclaration());
                     }
@@ -555,7 +558,8 @@ public final class StaticContext {
 
                     DeclarationDescriptor containingDeclaration = descriptor.getContainingDeclaration();
                     if (containingDeclaration != null && isNativeObject(containingDeclaration)) {
-                        return getQualifiedReference(containingDeclaration);
+                        return isCompanionObject(descriptor) ? getQualifierForDescriptor(containingDeclaration) :
+                            getQualifiedReference(containingDeclaration);
                     }
 
                     return null;
