@@ -92,10 +92,8 @@ public final class Namer {
     public static final String ANOTHER_THIS_PARAMETER_NAME = "$this";
 
     private static final String THROW_NPE_FUN_NAME = "throwNPE";
-    private static final String COMPANION_OBJECT_GETTER = "object";
-    private static final String COMPANION_OBJECT_INITIALIZER = "object_initializer$";
     private static final String PROTOTYPE_NAME = "prototype";
-    public static final String CAPTURED_VAR_FIELD = "v";
+    private static final String CAPTURED_VAR_FIELD = "v";
 
     public static final JsNameRef CREATE_INLINE_FUNCTION = new JsNameRef("defineInlineFunction", KOTLIN_OBJECT_REF);
 
@@ -171,16 +169,6 @@ public final class Namer {
     @NotNull
     private static String getNameForSetter(@NotNull String propertyName) {
         return getNameWithPrefix(propertyName, SETTER_PREFIX);
-    }
-
-    @NotNull
-    public static JsExpression getCompanionObjectAccessor(@NotNull JsExpression referenceToClass) {
-        return new JsNameRef(COMPANION_OBJECT_GETTER, referenceToClass);
-    }
-
-    @NotNull
-    public static String getNameForCompanionObjectInitializer() {
-        return COMPANION_OBJECT_INITIALIZER;
     }
 
     @NotNull
