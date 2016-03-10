@@ -134,7 +134,7 @@ class CandidateResolver(
 
             if (expectedTypeArgumentCount != jetTypeArguments.size) {
                 candidateCall.addStatus(OTHER_ERROR)
-                tracing.wrongNumberOfTypeArguments(trace, expectedTypeArgumentCount)
+                tracing.wrongNumberOfTypeArguments(trace, expectedTypeArgumentCount, candidateDescriptor)
             }
             else {
                 checkGenericBoundsInAFunctionCall(jetTypeArguments, typeArguments, candidateDescriptor, substitutor, trace)
