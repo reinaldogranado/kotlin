@@ -42,8 +42,10 @@ fun box(): String {
     val three = 3
 
     val test = max({ fizz(one) }, max({ fizz(two) }, buzz(three)))
-    assertEquals(3, test)
-    assertEquals("buzz(3);fizz(2);max(2, 3);fizz(1);max(1, 3);", pullLog())
+    if (test != 3) return "fail1: $test"
+
+    val log = pullLog()
+    if (log != "buzz(3);fizz(2);max(2, 3);fizz(1);max(1, 3);") return "fail2: $log"
 
     return "OK"
 }
