@@ -57,7 +57,8 @@ abstract class BaseGradleIT {
             if (useCount == null || useCount > MAX_DAEMON_RUNS) {
                 stopDaemon(version)
                 ranDaemonVersions.put(version, 1)
-            } else {
+            }
+            else {
                 ranDaemonVersions.put(version, useCount + 1)
             }
         }
@@ -100,11 +101,12 @@ abstract class BaseGradleIT {
 
     private fun Project.runAndCheck(cmd: List<String>, check: CompiledProject.() -> Unit) {
         val projectDir = File(workingDir, projectName)
-        if (!projectDir.exists())
+        if (!projectDir.exists()) {
             setupWorkingDir()
+        }
 
         val result = runProcess(cmd, projectDir)
-        CompiledProject(this, result.stdout, result.exitCode).check()
+        CompiledProject(this, result.output, result.exitCode).check()
     }
 
     fun CompiledProject.assertSuccessful(): CompiledProject {
