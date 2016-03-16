@@ -37,6 +37,8 @@ class MultifileClassPartCodegen(
         file: KtFile,
         private val filePartType: Type,
         private val multifileClassType: Type,
+        private val superClassInternalName: String,
+        shouldBeOpen: Boolean,
         partContext: FieldOwnerContext<*>,
         state: GenerationState
 ) : MemberCodegen<KtFile>(state, null, partContext, file, v) {
@@ -45,12 +47,18 @@ class MultifileClassPartCodegen(
         super.generate()
     }
 
+    private val classFlags =
+            if (shouldBeOpen)
+                Opcodes.ACC_SYNTHETIC or Opcodes.ACC_SUPER
+            else
+                Opcodes.ACC_SYNTHETIC or Opcodes.ACC_SUPER or Opcodes.ACC_FINAL
+
     override fun generateDeclaration() {
         v.defineClass(element, Opcodes.V1_6,
-                      Opcodes.ACC_FINAL or Opcodes.ACC_SYNTHETIC or Opcodes.ACC_SUPER,
+                      classFlags,
                       filePartType.internalName,
                       null,
-                      "java/lang/Object",
+                      superClassInternalName,
                       ArrayUtil.EMPTY_STRING_ARRAY)
         v.visitSource(element.name, null)
 
