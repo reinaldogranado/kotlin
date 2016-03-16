@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// KOTLIN_CONFIGURATION_FLAGS: +JVM.INHERIT_MULTIFILE_PARTS
 // FILE: box.kt
 
 import a.*
@@ -6,30 +7,33 @@ import a.*
 fun box(): String = OK
 
 // FILE: part1.kt
-
 @file:[JvmName("MultifileClass") JvmMultifileClass]
 package a
 
-val O: String = "O"
+val O = "O"
 
 // FILE: part2.kt
-
 @file:[JvmName("MultifileClass") JvmMultifileClass]
 package a
 
-val K: String = "K"
+const val K = "K"
 
 // FILE: part3.kt
-
 @file:[JvmName("MultifileClass") JvmMultifileClass]
 package a
 
 val OK: String = O + K
 
-// FILE: irrelevant.kt
-
+// FILE: irrelevantPart.kt
 @file:[JvmName("MultifileClass") JvmMultifileClass]
 package a
 
-val X: Nothing = throw AssertionError("X should not be initialized")
+val X1: Nothing =
+        throw AssertionError("X1 should not be initialized")
 
+// FILE: reallyIrrelevantPart.kt
+@file:[JvmName("MultifileClass") JvmMultifileClass]
+package a
+
+val X2: Nothing =
+        throw AssertionError("X2 should not be initialized")

@@ -374,6 +374,11 @@ public class FunctionCodegen {
             if (!KotlinTypeMapper.isAccessor(functionDescriptor)) {
                 genNotNullAssertionsForParameters(new InstructionAdapter(mv), parentCodegen.state, functionDescriptor, frameMap);
             }
+
+            if (!context.isInlineMethodContext()) {
+                parentCodegen.generatePropertyAccessorPrefixIfRequired(mv);
+            }
+
             methodEnd = new Label();
             context.setMethodEndLabel(methodEnd);
             strategy.generateBody(mv, frameMap, signature, context, parentCodegen);
