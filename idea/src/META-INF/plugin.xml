@@ -564,6 +564,7 @@
     <stubIndex implementation="org.jetbrains.kotlin.idea.stubindex.KotlinProbablyNothingPropertyShortNameIndex"/>
     <stubIndex implementation="org.jetbrains.kotlin.idea.stubindex.KotlinFileFacadeFqNameIndex"/>
     <stubIndex implementation="org.jetbrains.kotlin.idea.stubindex.KotlinFilePartClassIndex"/>
+    <stubIndex implementation="org.jetbrains.kotlin.idea.stubindex.KotlinFilePartClassByPackageIndex"/>
     <stubIndex implementation="org.jetbrains.kotlin.idea.stubindex.KotlinFileFacadeClassByPackageIndex"/>
     <stubIndex implementation="org.jetbrains.kotlin.idea.stubindex.KotlinFileFacadeShortNameIndex"/>
     <stubIndex implementation="org.jetbrains.kotlin.idea.stubindex.KotlinMultifileClassPartIndex"/>

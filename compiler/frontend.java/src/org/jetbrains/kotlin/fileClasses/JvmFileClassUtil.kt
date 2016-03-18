@@ -116,7 +116,15 @@ val KtFile.javaFileFacadeFqName: FqName
         }
     }
 
-fun KtDeclaration.isInsideJvmMultifileClassFile() = JvmFileClassUtil.findAnnotationEntryOnFileNoResolve(
-        getContainingKtFile(),
-        JvmFileClassUtil.JVM_MULTIFILE_CLASS_SHORT
-) != null
+val KtFile.javaFilePartFqName: FqName
+    get() {
+        return CachedValuesManager.getCachedValue(this) {
+            val facadeFqName =
+                    if (isCompiled) packageFqName.child(Name.identifier(virtualFile.nameWithoutExtension))
+                    else JvmFileClassUtil.getFileClassInfoNoResolve(this).fileClassFqName
+            CachedValueProvider.Result(facadeFqName, this)
+        }
+    }
+
+fun KtDeclaration.isInsideJvmMultifileClassFile() =
+        null != JvmFileClassUtil.findAnnotationEntryOnFileNoResolve(getContainingKtFile(), JvmFileClassUtil.JVM_MULTIFILE_CLASS_SHORT)

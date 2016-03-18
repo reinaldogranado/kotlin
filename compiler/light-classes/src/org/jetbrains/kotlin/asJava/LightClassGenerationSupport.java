@@ -80,6 +80,9 @@ public abstract class LightClassGenerationSupport {
     public abstract Collection<String> getFacadeNames(@NotNull FqName packageFqName, @NotNull GlobalSearchScope scope);
 
     @NotNull
+    public abstract Collection<String> getPartNames(@NotNull FqName packageFqName, @NotNull GlobalSearchScope scope);
+
+    @NotNull
     public abstract Collection<KtFile> findFilesForFacade(@NotNull FqName facadeFqName, @NotNull GlobalSearchScope scope);
 
     @NotNull

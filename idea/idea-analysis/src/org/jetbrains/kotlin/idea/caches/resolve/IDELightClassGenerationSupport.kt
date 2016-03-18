@@ -206,6 +206,11 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
         return facadeFilesInPackage.map { it.javaFileFacadeFqName.shortName().asString() }
     }
 
+    override fun getPartNames(packageFqName: FqName, scope: GlobalSearchScope): Collection<String> {
+        val partFilesInPackage = KotlinFilePartClassByPackageIndex.getInstance().get(packageFqName.asString(), project, scope)
+        return partFilesInPackage.map { it.javaFileFacadeFqName.shortName().asString() }
+    }
+
     override fun getFacadeClassesInPackage(packageFqName: FqName, scope: GlobalSearchScope): Collection<PsiClass> {
         val facadeFilesInPackage = KotlinFileFacadeClassByPackageIndex.getInstance().get(packageFqName.asString(), project, scope)
         val groupedByFqNameAndModuleInfo = facadeFilesInPackage.groupBy {

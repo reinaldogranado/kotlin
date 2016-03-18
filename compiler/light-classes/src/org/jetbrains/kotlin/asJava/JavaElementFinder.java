@@ -142,6 +142,7 @@ public class JavaElementFinder extends PsiElementFinder implements KotlinFinderM
 
         Set<String> answer = Sets.newHashSet();
         answer.addAll(lightClassGenerationSupport.getFacadeNames(packageFQN, scope));
+        answer.addAll(lightClassGenerationSupport.getPartNames(packageFQN, scope));
 
         for (KtClassOrObject declaration : declarations) {
             String name = declaration.getName();

@@ -57,6 +57,7 @@ public class IdeStubIndexService extends StubIndexService {
         FqName partFqName = ((KotlinFileStubForIde) stub).getPartFqName();
         if (partFqName != null) {
             sink.occurrence(KotlinFilePartClassIndex.INSTANCE.getKey(), partFqName.asString());
+            sink.occurrence(KotlinFilePartClassByPackageIndex.INSTANCE.getKey(), packageFqName.asString());
         }
 
         List<StringRef> partNames = ((KotlinFileStubForIde) stub).getFacadePartSimpleNames();

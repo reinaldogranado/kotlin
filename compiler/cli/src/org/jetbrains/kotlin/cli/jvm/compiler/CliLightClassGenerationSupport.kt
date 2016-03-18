@@ -219,4 +219,10 @@ class CliLightClassGenerationSupport(project: Project) : LightClassGenerationSup
             JvmFileClassUtil.getFileClassInfoNoResolve(it).facadeClassFqName.shortName().asString()
         }
     }
+
+    override fun getPartNames(packageFqName: FqName, scope: GlobalSearchScope): Collection<String> {
+        return PackagePartClassUtils.getFilesWithCallables(findFilesForPackage(packageFqName, scope)).map {
+            JvmFileClassUtil.getFileClassInfoNoResolve(it).fileClassFqName.shortName().asString()
+        }
+    }
 }
