@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2015 JetBrains s.r.o.
+ * Copyright 2010-2016 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,11 +135,12 @@ public abstract class KtWrappingLightClass extends AbstractLightClass implements
             @Override
             public PsiMethod invoke(PsiMethod method) {
                 LightMemberOrigin origin = ClsWrapperStubPsiFactory.getMemberOrigin(method);
-                KtDeclaration originalElement = origin != null ? origin.getOriginalElement() : null;
-                if (originalElement instanceof KtPropertyAccessor) {
-                    //noinspection ConstantConditions
-                    origin = origin.copy(PsiTreeUtil.getParentOfType(originalElement, KtProperty.class), origin.getOriginKind());
-                }
+                //TODO_R: wtf is this code?
+                //KtDeclaration originalElement = origin != null ? origin.getOriginalElement() : null;
+                //if (originalElement instanceof KtPropertyAccessor) {
+                //    //noinspection ConstantConditions
+                //    origin = origin.copy(PsiTreeUtil.getParentOfType(originalElement, KtProperty.class), origin.getOriginKind());
+                //}
 
                 return KtLightMethodImpl.Factory.create(method, origin, KtWrappingLightClass.this);
             }

@@ -49,3 +49,4 @@ open class KtDecompiledFile(
         return PsiTreeUtil.findElementOfClassAtRange(this@KtDecompiledFile, range.startOffset, range.endOffset, KtDeclaration::class.java)
     }
 }
+
