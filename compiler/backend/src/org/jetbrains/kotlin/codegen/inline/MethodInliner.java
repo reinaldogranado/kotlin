@@ -151,10 +151,11 @@ public class MethodInliner {
         resultNode.accept(new MethodBodyVisitor(adapter));
 
         sourceMapper.endMapping();
+        result.setSourceMapper(sourceMapper);
         return result;
     }
 
-    private MethodNode doInline(final MethodNode node) {
+    private MethodNode doInline(MethodNode node) {
 
         final Deque<InvokeCall> currentInvokes = new LinkedList<InvokeCall>(invokeCalls);
 

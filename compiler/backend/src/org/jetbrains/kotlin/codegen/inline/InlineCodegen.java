@@ -352,6 +352,8 @@ public class InlineCodegen extends CallGenerator {
     }
 
     private InlineResult inlineCall(SMAPAndMethodNode nodeAndSmap) {
+        List<FileMapping> originSourceMappings = codegen.getParentCodegen().getOrCreateSourceMapper().getResultMappings();
+        int callSiteLineNumber = codegen.getLastLineNumber();
         MethodNode node = nodeAndSmap.getNode();
         ReifiedTypeParametersUsages reificationResult = reifiedTypeInliner.reifyInstructions(node);
         generateClosuresBodies();
@@ -400,6 +402,8 @@ public class InlineCodegen extends CallGenerator {
         adapter.accept(new MethodBodyVisitor(codegen.v));
 
         addInlineMarker(codegen.v, false);
+
+        InlineCodegenUtilsKt.addStackTraceSmap(result.getSourceMapper(), codegen.getParentCodegen().v, originSourceMappings.size(), callSiteLineNumber);
 
         return result;
     }
