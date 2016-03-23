@@ -98,12 +98,18 @@ fun collectDefinedNames(scope: JsNode): Set<JsName> {
             addNameIfNeeded(x.name)
         }
 
-        override fun visitFunction(x: JsFunction) {
-            val name = x.name
-            if (name != null) {
-                addNameIfNeeded(x.name)
+        override fun visitExpressionStatement(x: JsExpressionStatement) {
+            val expression = x.expression
+            if (expression is JsFunction) {
+                val name = expression.name
+                if (name != null) {
+                    addNameIfNeeded(name)
+                }
             }
+            super.visitExpressionStatement(x)
         }
+
+        override fun visitFunction(x: JsFunction) { }
 
         private fun addNameIfNeeded(name: JsName) {
             val ident = name.ident
