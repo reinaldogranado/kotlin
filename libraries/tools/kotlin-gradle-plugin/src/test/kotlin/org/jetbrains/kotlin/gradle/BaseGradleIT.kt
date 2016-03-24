@@ -220,7 +220,7 @@ abstract class BaseGradleIT {
             hashMapOf<String, String>().apply {
                 val sdkDir = options.androidHome
                 if (sdkDir != null) {
-                    sdkDir.mkdirs()
+                    sdkDir.parentFile.mkdirs()
                     put("ANDROID_HOME", sdkDir.canonicalPath)
                 }
             }
