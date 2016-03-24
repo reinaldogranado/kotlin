@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestJdkKind
 import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.utils.rethrow
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
@@ -118,11 +119,11 @@ class ScriptTest {
             catch (e: CompilationException) {
                 messageCollector.report(CompilerMessageSeverity.EXCEPTION, OutputMessageUtil.renderException(e),
                                         MessageUtil.psiElementToMessageLocation(e.element))
-                return null
+                throw e
             }
             catch (t: Throwable) {
                 MessageCollectorUtil.reportException(messageCollector, t)
-                return null
+                throw t
             }
 
         }
