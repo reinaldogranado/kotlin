@@ -6636,6 +6636,42 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/none_ifReturn.kt");
             doTest(fileName);
         }
+
+        @TestMetadata("smartCastNotBroken.kt")
+        public void testSmartCastNotBroken() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/smartCastNotBroken.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("smartCastNotNullRequired.kt")
+        public void testSmartCastNotNullRequired() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/smartCastNotNullRequired.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("smartCastNotRequired.kt")
+        public void testSmartCastNotRequired() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/smartCastNotRequired.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("smartCastRequired.kt")
+        public void testSmartCastRequired() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/smartCastRequired.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("smartCastRequired2.kt")
+        public void testSmartCastRequired2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/smartCastRequired2.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("smartCastThisRequired.kt")
+        public void testSmartCastThisRequired() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/smartCastThisRequired.kt");
+            doTest(fileName);
+        }
     }
 
     @TestMetadata("idea/testData/intentions/moveAssignmentToInitializer")
