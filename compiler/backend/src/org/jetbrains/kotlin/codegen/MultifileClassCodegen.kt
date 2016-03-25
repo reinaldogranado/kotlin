@@ -111,7 +111,9 @@ class MultifileClassCodegen(
         else
             J_L_OBJECT
 
-    private val classBuilder = ClassBuilderOnDemand {
+    private val classBuilder: ClassBuilder? = run {
+        if (partInternalNamesSorted.isEmpty()) return@run null
+
         val originFile = files.firstOrNull()
 
         val actualPackageFragment = packageFragment
@@ -245,7 +247,10 @@ class MultifileClassCodegen(
     }
 
     private fun addDelegateGenerationTasksForDeclarationsInFile(file: KtFile, packageFragment: PackageFragmentDescriptor, partType: Type) {
+        if (classBuilder == null) return
+
         val facadeContext = state.rootContext.intoMultifileClass(packageFragment, facadeClassType, partType)
+
         val memberCodegen = createCodegenForDelegatesInMultifileFacade(facadeContext)
         for (declaration in file.declarations) {
             if (declaration is KtNamedFunction || declaration is KtProperty) {
@@ -322,6 +327,7 @@ class MultifileClassCodegen(
     }
 
     private fun writeKotlinMultifileFacadeAnnotationIfNeeded() {
+        if (classBuilder == null) return
         if (state.classBuilderMode != ClassBuilderMode.FULL) return
         if (files.any { it.isScript }) return
 
@@ -337,17 +343,20 @@ class MultifileClassCodegen(
     }
 
     private fun createCodegenForDelegatesInMultifileFacade(facadeContext: FieldOwnerContext<*>): MemberCodegen<KtFile> =
-            object : MemberCodegen<KtFile>(state, null, facadeContext, null, classBuilder) {
+            object : MemberCodegen<KtFile>(
+                    state, null, facadeContext, null,
+                    classBuilder ?: throw AssertionError("No facade should be generated for $facadeFqName")
+            ) {
                 override fun generateDeclaration() = throw UnsupportedOperationException()
                 override fun generateBody() = throw UnsupportedOperationException()
                 override fun generateKotlinMetadataAnnotation() = throw UnsupportedOperationException()
             }
 
     private fun done() {
+        if (classBuilder == null) return
+
         classBuilder.done()
-        if (classBuilder.isComputed) {
-            state.afterIndependentPart()
-        }
+        state.afterIndependentPart()
     }
 
     companion object {
