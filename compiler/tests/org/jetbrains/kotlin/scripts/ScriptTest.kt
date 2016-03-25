@@ -35,10 +35,11 @@ import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestJdkKind
 import org.jetbrains.kotlin.utils.PathUtil
-import org.jetbrains.kotlin.utils.rethrow
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
+import java.net.URLClassLoader
+import java.util.*
 
 class ScriptTest {
     @Test
@@ -133,10 +134,16 @@ class ScriptTest {
     }
 
     private fun CompilerConfiguration.addCurrentClasspathAsRoots() {
-        System.getProperty("java.class.path")?.let {
+
+        val cp: MutableSet<File> = System.getProperty("java.class.path")?.let {
             it.split(String.format("\\%s", File.pathSeparatorChar).toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    .forEach { addJvmClasspathRoot(File(it)) }
-        }
+                    .map { File(it).canonicalFile }.toMutableSet()
+        } ?: LinkedHashSet<File>()
+        (this.javaClass.classLoader as? URLClassLoader)?.urLs
+                ?.map { File(it.toURI()).canonicalFile }
+                ?.filter { it.exists() }
+                ?.forEach { cp.add(it) }
+        cp.forEach { addJvmClasspathRoot(it) }
     }
 
     private fun numIntParam(name: String = "num"): List<ScriptParameter> {
