@@ -4670,6 +4670,21 @@ public class JavaToKotlinConverterForWebDemoTestGenerated extends AbstractJavaTo
         }
     }
 
+    @TestMetadata("j2k/testData/fileOrElement/visibility")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Visibility extends AbstractJavaToKotlinConverterForWebDemoTest {
+        public void testAllFilesPresentInVisibility() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("j2k/testData/fileOrElement/visibility"), Pattern.compile("^(.+)\\.java$"), true);
+        }
+
+        @TestMetadata("internalClassInPublicApi.java")
+        public void testInternalClassInPublicApi() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("j2k/testData/fileOrElement/visibility/internalClassInPublicApi.java");
+            doTest(fileName);
+        }
+    }
+
     @TestMetadata("j2k/testData/fileOrElement/whileStatement")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

@@ -369,5 +369,13 @@ class QuickFixRegistrar : QuickFixContributor {
         UNSUPPORTED.registerFactory(UnsupportedAsyncFix)
 
         DATA_CLASS_NOT_PROPERTY_PARAMETER.registerFactory(AddValVarToConstructorParameterAction.QuickFixFactory)
+
+        EXPOSED_PROPERTY_TYPE.registerFactory(ExposedVisibilityModifierFix)
+        EXPOSED_FUNCTION_RETURN_TYPE.registerFactory(ExposedVisibilityModifierFix)
+        EXPOSED_PARAMETER_TYPE.registerFactory(ExposedVisibilityModifierFix)
+        EXPOSED_RECEIVER_TYPE.registerFactory(ExposedVisibilityModifierFix)
+        EXPOSED_TYPE_PARAMETER_BOUND.registerFactory(ExposedVisibilityModifierFix)
+        EXPOSED_SUPER_CLASS.registerFactory(ExposedVisibilityModifierFix)
+        EXPOSED_SUPER_INTERFACE.registerFactory(ExposedVisibilityModifierFix)
     }
 }
