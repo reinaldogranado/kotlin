@@ -19,10 +19,7 @@ package org.jetbrains.kotlin.generators.tests
 import junit.framework.TestCase
 import org.jetbrains.kotlin.AbstractDataFlowValueRenderingTest
 import org.jetbrains.kotlin.addImport.AbstractAddImportTest
-import org.jetbrains.kotlin.android.AbstractAndroidCompletionTest
-import org.jetbrains.kotlin.android.AbstractAndroidFindUsagesTest
-import org.jetbrains.kotlin.android.AbstractAndroidGotoTest
-import org.jetbrains.kotlin.android.AbstractAndroidRenameTest
+import org.jetbrains.kotlin.android.*
 import org.jetbrains.kotlin.android.configure.AbstractConfigureProjectTest
 import org.jetbrains.kotlin.annotation.AbstractAnnotationProcessorBoxTest
 import org.jetbrains.kotlin.asJava.AbstractCompilerLightClassTest
@@ -1000,6 +997,10 @@ fun main(args: Array<String>) {
             model("android/rename", recursive = false, extension = null)
         }
 
+        testClass<AbstractAndroidLayoutRenameTest>() {
+            model("android/renameLayout", recursive = false, extension = null)
+        }
+
         testClass<AbstractAndroidFindUsagesTest>() {
             model("android/findUsages", recursive = false, extension = null)
         }
@@ -1155,7 +1156,7 @@ internal class TestGroup(val testsRoot: String, val testDataRoot: String) {
                     }
                     else {
                         SimpleTestClassModel(rootFile, recursive, excludeParentDirs,
-                                             compiledPattern, filenameStartsLowerCase, testMethod, className, 
+                                             compiledPattern, filenameStartsLowerCase, testMethod, className,
                                              targetBackend, excludeDirs)
                     }
             )
