@@ -95,7 +95,7 @@ public final class StaticContext {
     private final Map<JsScope, JsFunction> scopeToFunction = Maps.newHashMap();
 
     @NotNull
-    private final Map<ClassDescriptor, List<DeclarationDescriptor>> localClassesClosure = Maps.newHashMap();
+    private final Map<MemberDescriptor, List<DeclarationDescriptor>> localClassesClosure = Maps.newHashMap();
 
     @NotNull
     private final Config config;
@@ -145,7 +145,7 @@ public final class StaticContext {
     }
 
     @NotNull
-    public JsScope getRootScope() {
+    private JsScope getRootScope() {
         return rootScope;
     }
 
@@ -633,12 +633,12 @@ public final class StaticContext {
         }
     }
 
-    public void putLocalClassClosure(@NotNull ClassDescriptor localClass, @NotNull List<DeclarationDescriptor> closure) {
+    public void putLocalClassClosure(@NotNull MemberDescriptor localClass, @NotNull List<DeclarationDescriptor> closure) {
         localClassesClosure.put(localClass, Lists.newArrayList(closure));
     }
 
     @Nullable
-    public List<DeclarationDescriptor> getLocalClassClosure(@NotNull ClassDescriptor localClass) {
+    public List<DeclarationDescriptor> getLocalClassClosure(@NotNull MemberDescriptor localClass) {
         List<DeclarationDescriptor> result = localClassesClosure.get(localClass);
         return result != null ? Lists.newArrayList(result) : null;
     }
