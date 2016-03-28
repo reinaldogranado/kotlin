@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.idea.core.quickfix.QuickFixUtil
 import org.jetbrains.kotlin.idea.util.approximateWithResolvableType
 import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getTargetFunction
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParentResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
@@ -86,7 +87,10 @@ class QuickFixFactoryForTypeMismatchError : KotlinIntentionActionsFactory() {
         }
 
         if (expectedType.isInterface()) {
-            actions.add(LetImplementInterfaceFix(diagnosticElement, expectedType, expressionType));
+            val expressionTypeDeclaration = expressionType.constructor.declarationDescriptor?.let {
+                DescriptorToSourceUtils.descriptorToDeclaration(it)
+            } as? KtClassOrObject
+            expressionTypeDeclaration?.let { actions.add(LetImplementInterfaceFix(it, expectedType, expressionType)) }
         }
 
         // We don't want to cast a cast or type-asserted expression:

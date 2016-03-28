@@ -7315,6 +7315,12 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
             doTest(fileName);
         }
 
+        @TestMetadata("letClassImplementGenericStarInterface.kt")
+        public void testLetClassImplementGenericStarInterface() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/typeMismatch/letClassImplementGenericStarInterface.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("letClassImplementInterface.kt")
         public void testLetClassImplementInterface() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/typeMismatch/letClassImplementInterface.kt");
@@ -7324,6 +7330,12 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
         @TestMetadata("letInterfaceExtendInterface.kt")
         public void testLetInterfaceExtendInterface() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/typeMismatch/letInterfaceExtendInterface.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("letStringImplementInterface.kt")
+        public void testLetStringImplementInterface() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/quickfix/typeMismatch/letStringImplementInterface.kt");
             doTest(fileName);
         }
 

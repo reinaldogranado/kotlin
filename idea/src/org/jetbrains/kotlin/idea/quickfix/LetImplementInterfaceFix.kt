@@ -16,56 +16,61 @@
 
 package org.jetbrains.kotlin.idea.quickfix
 
+import com.intellij.codeInsight.intention.LowPriorityAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.quickfix.createFromUsage.callableBuilder.containsStarProjections
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.idea.util.ShortenReferences
 import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isInterface
 
-private fun KotlinType.renderShort() = IdeDescriptorRenderers.SOURCE_CODE_SHORT_NAMES_IN_TYPES.renderType(this)
-
 class LetImplementInterfaceFix(
-        element: KtExpression,
-        private val expectedType: KotlinType,
-        private val expressionType: KotlinType
-) : KotlinQuickFixAction<KtExpression>(element) {
+        element: KtClassOrObject,
+        expectedType: KotlinType,
+        expressionType: KotlinType
+) : KotlinQuickFixAction<KtClassOrObject>(element), LowPriorityAction {
 
-    private val expressionTypeDeclaration = expressionType.constructor.declarationDescriptor?.let {
-        DescriptorToSourceUtils.descriptorToDeclaration(it)
-    } as? KtClassOrObject
+    private fun KotlinType.renderShort() = IdeDescriptorRenderers.SOURCE_CODE_SHORT_NAMES_IN_TYPES.renderType(this)
+
+    private val expectedTypeName = expectedType.renderShort()
+
+    private val expectedTypeNameForSuperTypeEntry = IdeDescriptorRenderers.SOURCE_CODE.renderType(expectedType)
+
+    private val prefix: String
+
+    private val validExpectedType: Boolean
+
+    init {
+        val verb = if (expressionType.isInterface()) "extend" else "implement"
+        prefix = "Let '${expressionType.renderShort()}' $verb"
+
+        validExpectedType = with (expectedType) {
+            isInterface() &&
+            !containsStarProjections() &&
+            constructor !in expressionType.constructor.supertypes.map(KotlinType::getConstructor)
+        }
+    }
 
     override fun getFamilyName() = "Let type implement interface"
     override fun getText(): String {
-        val verb = if (expressionType.isInterface()) "extend" else "implement"
-        return "Let '${expressionType.renderShort()}' $verb interface '${expectedType.renderShort()}'"
+        return "$prefix interface '$expectedTypeName'"
     }
 
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile): Boolean {
         if (!super.isAvailable(project, editor, file)) return false
-
-        if (!expectedType.isInterface()) return false
-        val expressionSuperTypes = expressionType.constructor.supertypes.map(KotlinType::getConstructor)
-        if (expectedType.constructor in expressionSuperTypes) return false
-        if (expressionTypeDeclaration == null) return false
+        if (!validExpectedType) return false
 
         return true
     }
 
     override fun invoke(project: Project, editor: Editor?, file: KtFile) {
-        val declaration = expressionTypeDeclaration ?: return
-        val superTypeEntry = KtPsiFactory(element).createSuperTypeEntry(IdeDescriptorRenderers.SOURCE_CODE.renderType(expectedType))
-        val entryElement = declaration.addSuperTypeListEntry(superTypeEntry)
+        val superTypeEntry = KtPsiFactory(element).createSuperTypeEntry(expectedTypeNameForSuperTypeEntry)
+        val entryElement = element.addSuperTypeListEntry(superTypeEntry)
         ShortenReferences.DEFAULT.process(entryElement)
     }
-
 }
