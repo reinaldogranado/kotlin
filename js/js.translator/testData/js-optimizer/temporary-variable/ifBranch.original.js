@@ -13,5 +13,5 @@ function box() {
     result = test1(-5);
     if (result != "undefined") return "fail2: " + result;
 
-    return "OK"
+    return "OK";
 }

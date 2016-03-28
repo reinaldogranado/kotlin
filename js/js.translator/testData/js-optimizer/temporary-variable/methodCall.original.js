@@ -75,7 +75,7 @@ function box() {
     result = test4();
     if (result != 6) return "fail4a: " + result;
     if (log != "{1}{2}{3}{1}{6}") return "fail4b: " + log;
-    
+
     result = test5();
     if (result != 6) return "fail5a: " + result;
     if (log != "{1}{2}{3}{4}") return "fail5b: " + log;
