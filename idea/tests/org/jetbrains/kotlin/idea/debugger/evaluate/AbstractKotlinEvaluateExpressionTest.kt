@@ -24,6 +24,7 @@ import com.intellij.debugger.engine.evaluation.TextWithImports
 import com.intellij.debugger.engine.evaluation.TextWithImportsImpl
 import com.intellij.debugger.engine.evaluation.expression.EvaluatorBuilderImpl
 import com.intellij.debugger.engine.events.DebuggerCommandImpl
+import com.intellij.debugger.impl.DebuggerContextImpl
 import com.intellij.debugger.settings.NodeRendererSettings
 import com.intellij.debugger.ui.impl.watch.*
 import com.intellij.debugger.ui.tree.FieldDescriptor
@@ -232,23 +233,24 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
 
     internal class PrinterConfig(
             val variablesToSkipInPrintFrame: List<String> = emptyList(),
-            val descriptorOptionsOptions: DescriptorViewOptions = DescriptorViewOptions.FULL
+            val viewOptions: DescriptorViewOptions = DescriptorViewOptions.FULL
     ) {
         enum class DescriptorViewOptions {
             FULL,
-            NAME_AND_EXPRESSION
+            NAME_EXPRESSION,
+            NAME_EXPRESSION_RESULT
         }
 
         fun shouldRenderSourcesPosition(): Boolean {
-            return when(descriptorOptionsOptions) {
+            return when(viewOptions) {
                 DescriptorViewOptions.FULL -> true
                 else -> false
             }
         }
 
         fun shouldRenderExpression(): Boolean {
-            return when(descriptorOptionsOptions) {
-                DescriptorViewOptions.NAME_AND_EXPRESSION -> true
+            return when {
+                viewOptions.toString().contains("EXPRESSION") -> true
                 else -> false
             }
         }
@@ -256,9 +258,13 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
         fun renderLabel(descriptor: NodeDescriptorImpl): String {
             return when {
                 descriptor is WatchItemDescriptor -> descriptor.calcValueName()
-                descriptorOptionsOptions == DescriptorViewOptions.NAME_AND_EXPRESSION -> descriptor.name ?: descriptor.label
+                viewOptions.toString().contains("NAME") -> descriptor.name ?: descriptor.label
                 else -> descriptor.label
             }
+        }
+
+        fun shouldComputeResultOfCreateExpression(): Boolean {
+           return viewOptions == DescriptorViewOptions.NAME_EXPRESSION_RESULT
         }
     }
 
@@ -309,18 +315,27 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
                 }
 
                 if (config.shouldRenderExpression() && descriptor is ValueDescriptorImpl) {
-                    var expression: PsiExpression? = null
-                    debuggerContext.debugProcess!!.managerThread.invokeAndWait(object : DebuggerCommandImpl() {
-                        override fun action() {
-                            expression = runReadAction {
-                                descriptor.getTreeEvaluation((node as XValueNodeImpl).valueContainer as JavaValue, debuggerContext) as? PsiExpression
+                    val expression = invokeInManagerThread {
+                        descriptor.getTreeEvaluation((node as XValueNodeImpl).valueContainer as JavaValue, it) as? PsiExpression
+                    }
+
+                    if (expression != null) {
+                        val itemWoImports = TextWithImportsImpl(expression)
+                        val imports = expression.getUserData(DebuggerTreeNodeExpression.ADDITIONAL_IMPORTS_KEY)?.joinToString { it } ?: ""
+                        val itemWithImports = TextWithImportsImpl(itemWoImports.kind, itemWoImports.text, itemWoImports.imports + imports, itemWoImports.fileType)
+
+                        val text = KotlinCodeFragmentFactory().createPresentationCodeFragment(
+                                itemWithImports, debuggerContext.sourcePosition.elementAt, project
+                        ).text
+
+                        if (config.shouldComputeResultOfCreateExpression()) {
+                            invokeInManagerThread {
+                                it.suspendContext?.evaluate(
+                                        TextWithImportsImpl(itemWithImports.kind, text, itemWithImports.imports, itemWithImports.fileType),
+                                        null)
                             }
                         }
-                    })
-                    if (expression != null) {
-                        val text = KotlinCodeFragmentFactory().createPresentationCodeFragment(
-                                TextWithImportsImpl(expression!!), debuggerContext.sourcePosition.elementAt, project
-                        ).text
+
                         append(" (expression = $text)")
                     }
                 }
@@ -330,6 +345,16 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
             logDescriptor(descriptor, builder.toString())
 
             return false
+        }
+
+        private fun <T: Any> invokeInManagerThread(f: (DebuggerContextImpl) -> T?): T? {
+            var result: T? = null
+            debuggerContext.debugProcess!!.managerThread.invokeAndWait(object : DebuggerCommandImpl() {
+                override fun action() {
+                    result = runReadAction { f(debuggerContext) }
+                }
+            })
+            return result
         }
 
         private fun getPrefix(descriptor: NodeDescriptorImpl): String {
@@ -422,7 +447,11 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
         return KotlinCodeFragmentFactory().createWrappingContext(text, labels, KotlinCodeFragmentFactory.getContextElement(contextElement), project)!!
     }
 
-    private fun SuspendContextImpl.evaluate(text: String, codeFragmentKind: CodeFragmentKind, expectedResult: String) {
+    private fun SuspendContextImpl.evaluate(text: String, codeFragmentKind: CodeFragmentKind, expectedResult: String?) {
+        return evaluate(TextWithImportsImpl(codeFragmentKind, text, "", KotlinFileType.INSTANCE), expectedResult)
+    }
+
+    private fun SuspendContextImpl.evaluate(item: TextWithImportsImpl, expectedResult: String?) {
         runReadAction {
             val sourcePosition = ContextUtil.getSourcePosition(this)
             val contextElement = createContextElement(this)
@@ -432,7 +461,7 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
             try {
 
                 val evaluator =
-                        EvaluatorBuilderImpl.build(TextWithImportsImpl(codeFragmentKind, text, "", KotlinFileType.INSTANCE),
+                        EvaluatorBuilderImpl.build(item,
                                                    contextElement,
                                                    sourcePosition)
 
@@ -441,11 +470,12 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
 
                 val value = evaluator.evaluate(this@AbstractKotlinEvaluateExpressionTest.evaluationContext)
                 val actualResult = value.asValue().asString()
-
-                Assert.assertTrue("Evaluate expression returns wrong result for $text:\nexpected = $expectedResult\nactual   = $actualResult\n", expectedResult == actualResult)
+                if (expectedResult != null) {
+                    Assert.assertTrue("Evaluate expression returns wrong result for ${item.text}:\nexpected = $expectedResult\nactual   = $actualResult\n", expectedResult == actualResult)
+                }
             }
             catch (e: EvaluateException) {
-                Assert.assertTrue("Evaluate expression throws wrong exception for $text:\nexpected = $expectedResult\nactual   = ${e.message}\n", expectedResult == e.message?.replaceFirst(ID_PART_REGEX, "id=ID"))
+                Assert.assertTrue("Evaluate expression throws wrong exception for ${item.text}:\nexpected = $expectedResult\nactual   = ${e.message}\n", expectedResult == e.message?.replaceFirst(ID_PART_REGEX, "id=ID"))
             }
         }
     }

@@ -26,7 +26,6 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.utils.addToStdlib.check
 import java.util.*
 
 abstract class KtCodeFragment(
@@ -146,8 +145,20 @@ abstract class KtCodeFragment(
 
     private fun initImports(imports: String?) {
         if (imports != null && !imports.isEmpty()) {
-            this.imports.addAll(imports.split(IMPORT_SEPARATOR).map { it.check { it.startsWith("import ") } ?: "import $it" })
+            val elements = imports.split(IMPORT_SEPARATOR)
+                    .mapNotNull {
+                        val name = if (it.startsWith("import ")) it.removePrefix("import ") else it
+                        fixImportIfNeeded(name)?.let { "import $it" }
+                    }
+            this.imports.addAll(elements)
         }
+    }
+
+    private fun fixImportIfNeeded(import: String): String? {
+        if (import.endsWith("[]")) {
+            return import.removeSuffix("[]").trim()
+        }
+        return import
     }
 
     companion object {

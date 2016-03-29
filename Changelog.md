@@ -35,6 +35,7 @@
 - Show error message when debug info for some local variable is corrupted
 - [KT-11638](https://youtrack.jetbrains.com/issue/KT-11638) Fixed hashCode() implementation in "Generate equals/hashCode" action
 - Convert java expression to kotlin when open Evaluate Expression dialog from Variables View
+- Fix Evaluate Expression for expression created for array element
 
 ### Tools.Gradle
 - Added project property 'kotlin.incremental'
