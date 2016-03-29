@@ -242,10 +242,6 @@ class KotlinInjectionTest : KotlinLightCodeInsightFixtureTestCase() {
         TestCase.assertTrue(UnInjectLanguageAction().isAvailable(project, myFixture.editor, myFixture.file))
     }
 
-    private fun doFileReferenceInjectTest(before: String, after: String) {
-        doTest(FileReferenceInjector(), before, after)
-    }
-
     private fun doRemoveInjectionTest(before: String, after: String) {
         myFixture.setCaresAboutInjection(false)
 
@@ -255,6 +251,10 @@ class KotlinInjectionTest : KotlinLightCodeInsightFixtureTestCase() {
         UnInjectLanguageAction.invokeImpl(project, myFixture.editor, myFixture.file)
 
         myFixture.checkResult(after.trimMargin())
+    }
+
+    private fun doFileReferenceInjectTest(before: String, after: String) {
+        doTest(FileReferenceInjector(), before, after)
     }
 
     private fun doTest(injectable: Injectable, before: String, after: String) {

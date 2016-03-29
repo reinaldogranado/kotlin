@@ -17,11 +17,8 @@
 package org.jetbrains.kotlin.idea.injection
 
 import com.intellij.codeInsight.AnnotationUtil
-import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
@@ -36,11 +33,13 @@ import org.intellij.plugins.intelliLang.inject.InjectedLanguage
 import org.intellij.plugins.intelliLang.inject.TemporaryPlacesRegistry
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.idea.util.addAnnotation
+import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.siblings
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 @NonNls val KOTLIN_SUPPORT_ID = "kotlin"
@@ -75,14 +74,15 @@ class KotlinLanguageInjectionSupport : AbstractLanguageInjectionSupport() {
         if (psiElement == null || psiElement !is KtElement) return false
 
         val project = psiElement.getProject()
-        val configuration = Configuration.getProjectInstance(project)
-
-        TemporaryPlacesRegistry.getInstance(project).removeHostWithUndo(project, psiElement)
 
         val injectionAnnotation = findAnnotationInjection(psiElement)
         val injectionComment = findInjectionComment(psiElement)
 
         val injectInstructions = listOf(injectionAnnotation, injectionComment).filterNotNull()
+
+        val configuration = Configuration.getProjectInstance(project)
+
+        TemporaryPlacesRegistry.getInstance(project).removeHostWithUndo(project, psiElement)
         configuration.replaceInjectionsWithUndo(project, listOf(), listOf(), injectInstructions)
 
         return true
@@ -146,7 +146,7 @@ private fun findElementToInjectWithComment(host: KtElement): KtExpression? {
             host,
             KtBlockExpression::class.java,
             true, /* strict */
-            KtDeclaration::class.java, KtDeclaration::class.java /* Stop at */
+            KtDeclaration::class.java /* Stop at */
     ) ?: return null
 
     return parentBlockExpression.statements.firstOrNull { statement ->
@@ -155,14 +155,6 @@ private fun findElementToInjectWithComment(host: KtElement): KtExpression? {
 }
 
 private fun addInjectionInstructionInCode(language: Language, host: PsiLanguageInjectionHost): Boolean {
-    fun addInjectionInWriteCommand(project: Project, action: () -> Unit) {
-        object : WriteCommandAction.Simple<Any>(project, host.containingFile) {
-            override fun run() {
-                action()
-            }
-        }.execute()
-    }
-
     val ktHost = host as? KtElement ?: return false
     val project = ktHost.project
 
@@ -170,7 +162,7 @@ private fun addInjectionInstructionInCode(language: Language, host: PsiLanguageI
     val modifierListOwner = findElementToInjectWithAnnotation(ktHost)
 
     if (modifierListOwner != null && canInjectWithAnnotation(ktHost)) {
-        addInjectionInWriteCommand(project) {
+        project.executeWriteCommand("Add injection annotation") {
             modifierListOwner.addAnnotation(FqName(AnnotationUtil.LANGUAGE), "\"${language.id}\"")
         }
 
@@ -186,7 +178,7 @@ private fun addInjectionInstructionInCode(language: Language, host: PsiLanguageI
     val psiFactory = KtPsiFactory(project)
     val injectComment = psiFactory.createComment("//language=" + language.id)
 
-    addInjectionInWriteCommand(project) {
+    project.executeWriteCommand("Add injection comment") {
         commentBeforeAnchor.parent.addBefore(injectComment, commentBeforeAnchor)
     }
 
@@ -215,34 +207,18 @@ private fun checkIsValidPlaceForInjectionWithLineComment(statement: KtExpression
 }
 
 private fun PsiElement.findChildrenComments(): Sequence<PsiComment> {
-    return forward(node.firstChildNode).asSequence().takeWhile { it is PsiComment || it is PsiWhiteSpace }.filterIsInstance<PsiComment>()
+    return firstChild.siblings().takeWhile { it is PsiComment || it is PsiWhiteSpace }.filterIsInstance<PsiComment>()
 }
 
 private fun PsiElement.findCommentsBeforeElement(): Sequence<PsiComment> {
-    return backward(node.treePrev).asSequence().takeWhile { it is PsiComment || it is PsiWhiteSpace }.filterIsInstance<PsiComment>()
+    return siblings(forward = false, withItself = false).takeWhile { it is PsiComment || it is PsiWhiteSpace }.filterIsInstance<PsiComment>()
 }
 
 private fun PsiElement.firstNonCommentChild(): PsiElement? {
-    return forward(node.firstChildNode).asSequence().dropWhile { it is PsiComment || it is PsiWhiteSpace }.firstOrNull()
+    return firstChild.siblings().dropWhile { it is PsiComment || it is PsiWhiteSpace }.firstOrNull()
 }
 
-private fun forward(node: ASTNode) = PsiNodeIterator(node)
-private fun backward(node: ASTNode) = PsiNodeIterator(node, false)
-private class PsiNodeIterator(var node: ASTNode, private val forward: Boolean = true): Iterator<PsiElement> {
-    private var isFirst = true
-
-    override fun hasNext(): Boolean = isFirst || getNext() != null
-    override fun next(): PsiElement {
-        isFirst = false
-
-        val thisNode = node
-        node = getNext()
-        return thisNode.psi
-    }
-
-    private fun getNext() = if (forward) node.treeNext else node.treePrev
-}
-
+// Based on InjectorUtils.prevWalker
 private fun prevWalker(element: PsiElement, scope: PsiElement): Iterator<PsiElement?> {
     return object : Iterator<PsiElement?> {
         private var e: PsiElement? = element
