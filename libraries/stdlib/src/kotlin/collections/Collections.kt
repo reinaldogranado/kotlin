@@ -130,7 +130,6 @@ public inline fun <T> Enumeration<T>.toList(): List<T> = Collections.list(this)
 @kotlin.internal.InlineOnly
 public inline fun <@kotlin.internal.OnlyInputTypes T> Collection<T>.containsAll(elements: Collection<T>): Boolean = this.containsAll(elements)
 
-@kotlin.internal.InlineExposed
 internal fun <T> List<T>.optimizeReadOnlyList() = when (size) {
     0 -> emptyList()
     1 -> listOf(this[0])

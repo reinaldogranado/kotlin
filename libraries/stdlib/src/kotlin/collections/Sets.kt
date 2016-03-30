@@ -66,7 +66,6 @@ public fun <T> sortedSetOf(vararg elements: T): TreeSet<T> = elements.toCollecti
 public fun <T> sortedSetOf(comparator: Comparator<in T>, vararg elements: T): TreeSet<T> = elements.toCollection(TreeSet<T>(comparator))
 
 
-@kotlin.internal.InlineExposed
 internal fun <T> Set<T>.optimizeReadOnlySet() = when (size) {
     0 -> emptySet()
     1 -> setOf(iterator().next())

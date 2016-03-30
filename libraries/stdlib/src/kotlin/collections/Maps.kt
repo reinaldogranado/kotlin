@@ -283,7 +283,7 @@ public fun <K, V> MutableMap<in K, in V>.putAll(pairs: Sequence<Pair<K,V>>): Uni
  */
 @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 public inline fun <K, V, R> Map<K, V>.mapValues(transform: (Map.Entry<K, V>) -> R): Map<K, R> {
-    return mapValuesTo(LinkedHashMap<K, R>(mapCapacity(size)), transform).optimizeReadOnlyMap()
+    return mapValuesTo(LinkedHashMap<K, R>(mapCapacity(size)), transform) // .optimizeReadOnlyMap()
 }
 
 /**
@@ -294,7 +294,7 @@ public inline fun <K, V, R> Map<K, V>.mapValues(transform: (Map.Entry<K, V>) -> 
  */
 @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 public inline fun <K, V, R> Map<K, V>.mapKeys(transform: (Map.Entry<K, V>) -> R): Map<R, V> {
-    return mapKeysTo(LinkedHashMap<R, V>(mapCapacity(size)), transform).optimizeReadOnlyMap()
+    return mapKeysTo(LinkedHashMap<R, V>(mapCapacity(size)), transform) // .optimizeReadOnlyMap()
 }
 
 /**
@@ -486,7 +486,7 @@ public inline operator fun <K, V> MutableMap<in K, in V>.plusAssign(map: Map<K, 
 }
 
 
-@kotlin.internal.InlineExposed
+// do not expose for now @kotlin.internal.InlineExposed
 internal fun <K, V> Map<K, V>.optimizeReadOnlyMap() = when (size) {
     0 -> emptyMap()
     1 -> toSingletonMap()
