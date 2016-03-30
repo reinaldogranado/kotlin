@@ -21,7 +21,8 @@ data class ClassBinarySignature(
         val supertypes: List<String>,
         val memberSignatures: List<MemberBinarySignature>,
         val access: AccessFlags,
-        val isEffectivelyPublic: Boolean) {
+        val isEffectivelyPublic: Boolean,
+        val isFileOrMultipartFacade: Boolean) {
 
     val signature: String
         get() = "${access.getModifierString()} class $name" + if (supertypes.isEmpty()) "" else " : ${supertypes.joinToString()}"

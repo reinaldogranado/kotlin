@@ -6,6 +6,7 @@ import java.io.File
 import java.io.InputStream
 import java.util.jar.JarFile
 import kotlin.comparisons.compareBy
+import kotlin.comparisons.thenBy
 
 fun main(args: Array<String>) {
     var src = args[0]
@@ -46,9 +47,8 @@ fun getBinaryAPI(classStreams: Sequence<InputStream>, visibilityMap: Map<String,
                 it.isEffectivelyPublic(classAccess, classVisibility)
             }
             val isEffectivelyPublic = it.isEffectivelyPublic(classVisibility)
-                                && !(isFileOrMultipartFacade() && memberSignatures.isEmpty())
 
-            ClassBinarySignature(name, superName, outerClassName, supertypes, memberSignatures, classAccess, isEffectivelyPublic)
+            ClassBinarySignature(name, superName, outerClassName, supertypes, memberSignatures, classAccess, isEffectivelyPublic, isFileOrMultipartFacade())
         }}
         .asIterable()
         .sortedBy { it.name }
@@ -76,10 +76,19 @@ fun List<ClassBinarySignature>.filterOutNonPublic(): List<ClassBinarySignature> 
         val inheritedStaticSignatures = nonPublicSupertypes.flatMap { it.memberSignatures.filter { it.access.isStatic }}
 
         // not covered the case when there is public superclass after chain of private superclasses
-        return this.copy(memberSignatures = memberSignatures + inheritedStaticSignatures, supertypes = supertypes - superName)
+        return this.copy(
+                memberSignatures = (memberSignatures + inheritedStaticSignatures).sortedWith(compareBy<MemberBinarySignature> {
+                    when (it) {
+                        is FieldBinarySignature -> 1
+                        is MethodBinarySignature -> 2
+                        else -> 0
+                    }
+                }.thenBy { it.name }.thenBy { it.desc }),
+                supertypes = supertypes - superName
+        )
     }
 
-    return filter { it -> it.isPublicAndAccessible() }.map { it.flattenNonPublicBases() }
+    return filter { it -> it.isPublicAndAccessible() }.map { it.flattenNonPublicBases() }.filterNot { it.isFileOrMultipartFacade && it.memberSignatures.isEmpty()}
 }
 
 fun List<ClassBinarySignature>.dump() = dump(to = System.out)
