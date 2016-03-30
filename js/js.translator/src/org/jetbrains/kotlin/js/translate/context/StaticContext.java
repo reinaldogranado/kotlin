@@ -185,10 +185,8 @@ public final class StaticContext {
 
     @NotNull
     public JsNameRef getQualifiedReference(@NotNull FqName packageFqName) {
-        JsNameRef result = new JsNameRef(getNameForPackage(packageFqName),
-                             packageFqName.isRoot() ? null : getQualifierForParentPackage(packageFqName.parent()));
-        MetadataProperties.setWithoutSideEffects(result, true);
-        return result;
+        JsName packageName = getNameForPackage(packageFqName);
+        return JsAstUtils.fqn(packageName, packageFqName.isRoot() ? null : getQualifierForParentPackage(packageFqName.parent()));
     }
 
     @NotNull
@@ -217,8 +215,7 @@ public final class StaticContext {
         FqName fqName = packageFqName;
 
         while (true) {
-            JsNameRef ref = getNameForPackage(fqName).makeRef();
-            MetadataProperties.setWithoutSideEffects(ref, true);
+            JsNameRef ref = JsAstUtils.fqn(getNameForPackage(fqName), null);
 
             if (qualifier == null) {
                 result = ref;
