@@ -23,6 +23,7 @@ import com.intellij.psi.impl.PsiManagerEx
 import com.intellij.psi.impl.source.tree.FileElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.types.KotlinType
@@ -156,7 +157,12 @@ abstract class KtCodeFragment(
 
     private fun fixImportIfNeeded(import: String): String? {
         if (import.endsWith("[]")) {
-            return import.removeSuffix("[]").trim()
+            return fixImportIfNeeded(import.removeSuffix("[]").trim())
+        }
+
+        // skip primitive types
+        if (PsiTypesUtil.boxIfPossible(import) != import) {
+            return null
         }
         return import
     }

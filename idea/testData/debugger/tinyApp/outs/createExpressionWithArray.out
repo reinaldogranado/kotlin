@@ -27,10 +27,10 @@ Compile bytecode for (innerArray[0] as InnerClass).i2
  frame    = main
    local    = args (expression = args)
    local    = baseArray (expression = baseArray)
-     unknown  = 0 (expression = baseArray[0])
+     element  = 0 (expression = baseArray[0])
        field    = i2 (expression = baseArray[0].i2)
    local    = innerArray (expression = innerArray)
-     unknown  = 0 (expression = innerArray[0])
+     element  = 0 (expression = innerArray[0])
        field    = i (expression = (innerArray[0] as InnerClass).i)
        field    = i2 (expression = (innerArray[0] as InnerClass).i2)
 Disconnected from the target VM, address: '!HOST_NAME!:PORT_NAME!', transport: 'socket'

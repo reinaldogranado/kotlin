@@ -27,10 +27,7 @@ import com.intellij.debugger.engine.events.DebuggerCommandImpl
 import com.intellij.debugger.impl.DebuggerContextImpl
 import com.intellij.debugger.settings.NodeRendererSettings
 import com.intellij.debugger.ui.impl.watch.*
-import com.intellij.debugger.ui.tree.FieldDescriptor
-import com.intellij.debugger.ui.tree.LocalVariableDescriptor
-import com.intellij.debugger.ui.tree.StackFrameDescriptor
-import com.intellij.debugger.ui.tree.StaticDescriptor
+import com.intellij.debugger.ui.tree.*
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
@@ -113,7 +110,7 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
         createAdditionalBreakpoints(fileText)
 
         val shouldPrintFrame = isDirectiveDefined(fileText, "// PRINT_FRAME")
-        val skipInPrintFrame = if (shouldPrintFrame) findLinesWithPrefixesRemoved(fileText, "// SKIP: ") else emptyList()
+        val skipInPrintFrame = if (shouldPrintFrame) findListWithPrefixes(fileText, "// SKIP: ") else emptyList()
         val descriptorViewOptions = DescriptorViewOptions.valueOf(findStringWithPrefixes(fileText, "// DESCRIPTOR_VIEW_OPTIONS: ") ?: "FULL")
 
         val expressions = loadTestDirectivesPairs(fileText, "// EXPRESSION: ", "// RESULT: ")
@@ -365,6 +362,7 @@ abstract class AbstractKotlinEvaluateExpressionTest : KotlinDebuggerTestBase() {
                 is StaticDescriptor -> "static"
                 is ThisDescriptorImpl -> "this"
                 is FieldDescriptor -> "field"
+                is ArrayElementDescriptor -> "element"
                 is MessageDescriptor -> ""
                 else -> "unknown"
             }

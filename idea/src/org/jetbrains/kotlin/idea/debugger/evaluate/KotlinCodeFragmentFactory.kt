@@ -134,12 +134,13 @@ class KotlinCodeFragmentFactory: CodeFragmentFactory() {
                 var convertedFragment: KtExpressionCodeFragment? = null
                 project.executeWriteCommand("Convert java expression to kotlin in Evaluate Expression") {
                     val newText = javaExpression.j2kText()
+                    val newImports = kotlinCodeFragment.importsAsImportList()?.j2kText()
                     if (newText != null) {
                         convertedFragment = KtExpressionCodeFragment(
                                 project,
                                 kotlinCodeFragment.name,
                                 newText,
-                                kotlinCodeFragment.importsToString(),
+                                newImports,
                                 kotlinCodeFragment.context
                         )
 
