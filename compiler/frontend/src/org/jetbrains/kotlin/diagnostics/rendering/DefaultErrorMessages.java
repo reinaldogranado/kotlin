@@ -541,7 +541,7 @@ public class DefaultErrorMessages {
                 RENDER_TYPE);
         MAP.put(TYPE_MISMATCH_IN_CONDITION, "Condition must be of type Boolean, but is of type {0}", RENDER_TYPE);
         MAP.put(INCOMPATIBLE_TYPES, "Incompatible types: {0} and {1}", RENDER_TYPE, RENDER_TYPE);
-        MAP.put(IMPLICIT_NOTHING_RETURN_TYPE, "'Nothing' return type needs to be specified explicitly");
+        MAP.put(IMPLICIT_NOTHING_RETURN_TYPE, "Function never returns, specify its return type explicitly");
         MAP.put(IMPLICIT_NOTHING_PROPERTY_TYPE, "'Nothing' property type needs to be specified explicitly");
         MAP.put(IMPLICIT_INTERSECTION_TYPE, "Inferred type {0} is an intersection, please specify the required type explicitly", RENDER_TYPE);
         MAP.put(EXPECTED_CONDITION, "Expected condition of type Boolean");
