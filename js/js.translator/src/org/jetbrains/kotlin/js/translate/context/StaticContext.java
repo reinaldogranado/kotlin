@@ -587,7 +587,7 @@ public final class StaticContext {
         if (expression instanceof HasMetadata) {
             if (descriptor instanceof FunctionDescriptor || descriptor instanceof PackageFragmentDescriptor ||
                     descriptor instanceof ClassDescriptor) {
-                MetadataProperties.setWithoutSideEffects((HasMetadata) expression, true);
+                MetadataProperties.setSideEffects((HasMetadata) expression, false);
             }
         }
         return expression;
