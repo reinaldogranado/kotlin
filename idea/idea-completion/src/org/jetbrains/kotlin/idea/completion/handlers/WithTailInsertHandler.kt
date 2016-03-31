@@ -55,7 +55,10 @@ class WithTailInsertHandler(val tailText: String,
         //TODO: analyze parenthesis balance to decide whether to replace or not
         var insert = true
         if (overwriteText) {
-            var offset = document.charsSequence.skipSpacesAndLineBreaks(tailOffset)
+            var offset = tailOffset
+            if (tailText != " ") {
+                offset = document.charsSequence.skipSpacesAndLineBreaks(offset)
+            }
             if (document.isTextAt(offset, tailText)) {
                 insert = false
                 offset += tailText.length
@@ -92,6 +95,6 @@ class WithTailInsertHandler(val tailText: String,
         val RBRACE = WithTailInsertHandler("}", spaceBefore = true, spaceAfter = false)
         val ELSE = WithTailInsertHandler("else", spaceBefore = true, spaceAfter = true)
         val EQ = WithTailInsertHandler("=", spaceBefore = true, spaceAfter = true) /*TODO: use code style options*/
-        val SPACE = WithTailInsertHandler(" ", spaceBefore = false, spaceAfter = false, overwriteText = false)
+        val SPACE = WithTailInsertHandler(" ", spaceBefore = false, spaceAfter = false, overwriteText = true)
     }
 }
