@@ -25,7 +25,7 @@ interface UCallExpression : UExpression, UResolvable {
     val functionName: String?
     val functionNameElement: UElement?
 
-    fun functionNameMatches(name: String) = functionName == name
+    open fun functionNameMatches(name: String) = functionName == name
 
     val valueArgumentCount: Int
     val valueArguments: List<UExpression>
@@ -49,7 +49,7 @@ interface UCallExpression : UExpression, UResolvable {
 
     override fun logString() = log("UFunctionCallExpression ($kind, argCount = $valueArgumentCount)", functionReference, valueArguments)
     override fun renderString(): String {
-        val ref = functionName ?: functionReference?.renderString() ?: classReference?.renderString() ?: "<noref>"
+        val ref = functionName ?: classReference?.renderString() ?: functionReference?.renderString() ?: "<noref>"
         return ref + "(" + valueArguments.joinToString { it.renderString() } + ")"
     }
 }

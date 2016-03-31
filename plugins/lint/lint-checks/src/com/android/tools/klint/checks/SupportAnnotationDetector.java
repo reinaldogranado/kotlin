@@ -788,8 +788,7 @@ public class SupportAnnotationDetector extends Detector implements UastScanner {
             }
         } else if (argument instanceof UCallExpression) {
             UDeclaration resolved = ((UCallExpression)argument).resolve(context);
-            //noinspection ConstantConditions
-            if (resolved instanceof UAnnotated) {
+            if (resolved != null) {
                 List<UAnnotation> annotations = ((UAnnotated) resolved).getAnnotations();
                 for (UAnnotation annotation : annotations) {
                     String signature = annotation.getFqName();
@@ -1077,7 +1076,6 @@ public class SupportAnnotationDetector extends Detector implements UastScanner {
                         "Flag not allowed here");
             }
         } else if (argument instanceof UBinaryExpression) {
-            // If it's ?: then check both the if and else clauses
             UBinaryExpression expression = (UBinaryExpression) argument;
             if (flag) {
                 checkTypeDefConstant(context, annotation, expression.getLeftOperand(), errorNode, true);

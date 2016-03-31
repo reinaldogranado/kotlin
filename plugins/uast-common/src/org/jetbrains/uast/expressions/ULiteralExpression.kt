@@ -28,12 +28,18 @@ interface ULiteralExpression : UExpression {
     val isBoolean: Boolean
         get() = evaluate() is Boolean
 
-    fun asString() = value?.toString() ?: ""
+    fun asString(): String {
+        val value = value
+        return if (value == null)
+            "null"
+        else
+            value.toString()
+    }
 
     override fun accept(visitor: UastVisitor) {
         visitor.visitLiteralExpression(this)
     }
 
     override fun logString() = "ULiteralExpression (${asString()})"
-    override fun renderString() = asString()
+    override fun renderString() = if (value is String) "\"$value\"" else asString()
 }

@@ -57,8 +57,8 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
           // Handled by the ResourceTypeInspection
           continue;
         } else if (scope.contains(Scope.CLASS_FILE) ||
-                   scope.contains(Scope.ALL_CLASS_FILES) ||
-                   scope.contains(Scope.JAVA_LIBRARIES)) {
+            scope.contains(Scope.ALL_CLASS_FILES) ||
+            scope.contains(Scope.JAVA_LIBRARIES)) {
           //noinspection ConstantConditions
           assert !IntellijLintProject.SUPPORT_CLASS_FILES; // When enabled, adjust this to include class detector based issues
 

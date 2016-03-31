@@ -155,7 +155,7 @@ class ClassEntry implements Comparable<ClassEntry> {
                         for (File dir : classFolders) {
                             if (path.startsWith(dir.getPath())) {
                                 entries.add(new ClassEntry(file, null /* jarFile*/, dir,
-                                                           bytes));
+                                           bytes));
                                 break;
                             }
                         }

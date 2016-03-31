@@ -23,7 +23,7 @@ interface UBinaryExpressionWithType : UExpression {
     val type: UType
 
     override fun logString() = log("UBinaryExpressionWithType (${getExpressionType()?.name}, ${operationKind.name})", operand)
-    override fun renderString() = "(${operand.renderString()}) ${operationKind.name} ${getExpressionType()?.name}"
+    override fun renderString() = "${operand.renderString()} ${operationKind.name} ${type.name}"
 
     override fun accept(visitor: UastVisitor) {
         if (visitor.visitBinaryExpressionWithType(this)) return
