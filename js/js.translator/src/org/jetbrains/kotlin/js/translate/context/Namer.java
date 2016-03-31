@@ -45,7 +45,6 @@ import static org.jetbrains.kotlin.js.translate.utils.ManglingUtils.getSuggested
 public final class Namer {
     public static final String KOTLIN_NAME = KotlinLanguage.NAME;
     public static final String KOTLIN_LOWER_NAME = KOTLIN_NAME.toLowerCase();
-    private static final JsNameRef KOTLIN_OBJECT_REF = JsAstUtils.fqn(KOTLIN_NAME, null);
 
     public static final String EQUALS_METHOD_NAME = getStableMangledNameForDescriptor(JsPlatform.INSTANCE.getBuiltIns().getAny(), "equals");
     public static final String COMPARE_TO_METHOD_NAME = getStableMangledNameForDescriptor(JsPlatform.INSTANCE.getBuiltIns().getComparable(), "compareTo");
@@ -97,11 +96,7 @@ public final class Namer {
     private static final String COMPANION_OBJECT_INITIALIZER = "object_initializer$";
     private static final String PROTOTYPE_NAME = "prototype";
     public static final String CAPTURED_VAR_FIELD = "v";
-
-    public static final JsNameRef CREATE_INLINE_FUNCTION = new JsNameRef("defineInlineFunction", KOTLIN_OBJECT_REF);
-
-    @NotNull
-    public static final JsExpression UNDEFINED_EXPRESSION = new JsPrefixOperation(JsUnaryOperator.VOID, JsNumberLiteral.ZERO);
+    public static final String DEFINE_INLINE_FUNCTION = "defineInlineFunction";
 
     private static final JsNameRef JS_OBJECT = new JsNameRef("Object");
     private static final JsNameRef JS_OBJECT_CREATE_FUNCTION = new JsNameRef("create", JS_OBJECT);
@@ -378,12 +373,12 @@ public final class Namer {
     }
 
     @NotNull
-    public JsExpression throwNPEFunctionRef() {
+    public static JsExpression throwNPEFunctionRef() {
         return new JsNameRef(THROW_NPE_FUN_NAME, kotlinObject());
     }
 
     @NotNull
-    private JsNameRef kotlin(@NotNull JsName name) {
+    public static JsNameRef kotlin(@NotNull JsName name) {
         return JsAstUtils.fqn(name, kotlinObject());
     }
 
@@ -393,8 +388,8 @@ public final class Namer {
     }
 
     @NotNull
-    public JsNameRef kotlinObject() {
-        return JsAstUtils.fqn(kotlinName, null);
+    public static JsNameRef kotlinObject() {
+        return JsAstUtils.fqn(KOTLIN_NAME, null);
     }
 
     @NotNull
@@ -451,8 +446,8 @@ public final class Namer {
     }
 
     @NotNull
-    public JsExpression getUndefinedExpression() {
-        return UNDEFINED_EXPRESSION;
+    public static JsExpression getUndefinedExpression() {
+        return new JsPrefixOperation(JsUnaryOperator.VOID, JsNumberLiteral.ZERO);
     }
 
     @NotNull
@@ -473,6 +468,11 @@ public final class Namer {
     }
 
     public static JsNameRef kotlinLong() {
-        return JsAstUtils.fqn("Long", JsAstUtils.fqn(KOTLIN_NAME, null));
+        return JsAstUtils.fqn("Long", kotlinObject());
+    }
+
+    @NotNull
+    public static JsNameRef createInlineFunction() {
+        return JsAstUtils.fqn(DEFINE_INLINE_FUNCTION, kotlinObject());
     }
 }

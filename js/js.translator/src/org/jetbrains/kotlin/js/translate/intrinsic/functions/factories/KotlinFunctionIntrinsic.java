@@ -34,7 +34,7 @@ public class KotlinFunctionIntrinsic extends FunctionIntrinsic {
     private final JsNameRef function;
 
     public KotlinFunctionIntrinsic(@NotNull String functionName) {
-        function = JsAstUtils.fqn(functionName, JsAstUtils.fqn(Namer.KOTLIN_NAME, null));
+        function = JsAstUtils.fqn(functionName, Namer.kotlinObject());
     }
 
     @NotNull

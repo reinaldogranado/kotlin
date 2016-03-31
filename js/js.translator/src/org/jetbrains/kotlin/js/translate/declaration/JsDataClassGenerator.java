@@ -20,6 +20,7 @@ import com.google.dart.compiler.backend.js.ast.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.backend.common.DataClassMethodGenerator;
 import org.jetbrains.kotlin.descriptors.*;
+import org.jetbrains.kotlin.js.translate.context.Namer;
 import org.jetbrains.kotlin.js.translate.context.TranslationContext;
 import org.jetbrains.kotlin.js.translate.utils.JsAstUtils;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
@@ -68,7 +69,7 @@ class JsDataClassGenerator extends DataClassMethodGenerator {
                 argumentValue = parameterValue;
             }
             else {
-                JsExpression defaultCondition = JsAstUtils.equality(new JsNameRef(paramName), context.namer().getUndefinedExpression());
+                JsExpression defaultCondition = JsAstUtils.equality(new JsNameRef(paramName), Namer.getUndefinedExpression());
                 argumentValue = new JsConditional(defaultCondition,
                                                   propertyAccessor(JsLiteral.THIS, constructorParam.getName()),
                                                   parameterValue);

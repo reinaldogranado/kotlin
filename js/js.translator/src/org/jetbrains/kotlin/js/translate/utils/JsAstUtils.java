@@ -123,7 +123,7 @@ public final class JsAstUtils {
 
     @NotNull
     public static JsInvocation invokeKotlinFunction(@NotNull String name, @NotNull JsExpression... argument) {
-        return new JsInvocation(fqn(name, fqn(Namer.KOTLIN_NAME, null)), argument);
+        return invokeMethod(Namer.kotlinObject(), name, argument);
     }
 
     @NotNull
@@ -173,7 +173,7 @@ public final class JsAstUtils {
 
     @NotNull
     private static JsExpression rangeTo(@NotNull String rangeClassName, @NotNull JsExpression rangeStart, @NotNull JsExpression rangeEnd) {
-        JsNameRef expr = fqn(rangeClassName, fqn(Namer.KOTLIN_NAME, null));
+        JsNameRef expr = fqn(rangeClassName, Namer.kotlinObject());
         JsNew numberRangeConstructorInvocation = new JsNew(expr);
         setArguments(numberRangeConstructorInvocation, rangeStart, rangeEnd);
         return numberRangeConstructorInvocation;
@@ -448,7 +448,7 @@ public final class JsAstUtils {
         JsName kotlinObjectAsParameter = packageBlockFunction.getScope().declareNameUnsafe(Namer.KOTLIN_NAME);
         packageBlockFunction.getParameters().add(new JsParameter(kotlinObjectAsParameter));
 
-        to.add(new JsInvocation(packageBlockFunction, fqn(Namer.KOTLIN_NAME, null)).makeStmt());
+        to.add(new JsInvocation(packageBlockFunction, Namer.kotlinObject()).makeStmt());
 
         return packageBlockFunction;
     }
@@ -499,5 +499,12 @@ public final class JsAstUtils {
         JsNameRef result = new JsNameRef(identifier, qualifier);
         MetadataProperties.setWithoutSideEffects(result, true);
         return result;
+    }
+
+    public static boolean isUndefinedExpression(JsExpression expression) {
+        if (!(expression instanceof JsUnaryOperation)) return false;
+
+        JsUnaryOperation unary = (JsUnaryOperation) expression;
+        return unary.getOperator() == JsUnaryOperator.VOID;
     }
 }
