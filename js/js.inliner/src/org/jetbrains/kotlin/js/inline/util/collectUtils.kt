@@ -27,7 +27,7 @@ import java.util.*
 fun collectFunctionReferencesInside(scope: JsNode): List<JsName> =
         collectReferencedNames(scope).filter { it.staticRef is JsFunction }
 
-fun collectReferencedNames(scope: JsNode): Set<JsName> {
+private fun collectReferencedNames(scope: JsNode): Set<JsName> {
     val references = IdentitySet<JsName>()
 
     object : JsVisitorWithContextImpl() {
