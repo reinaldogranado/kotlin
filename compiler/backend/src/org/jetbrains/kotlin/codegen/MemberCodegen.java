@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.resolve.constants.ConstantValue;
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator;
 import org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt;
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes;
+import org.jetbrains.kotlin.resolve.jvm.diagnostics.ErrorsJvm;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKt;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature;
 import org.jetbrains.kotlin.resolve.source.KotlinSourceElementKt;
@@ -175,37 +176,37 @@ public abstract class MemberCodegen<T extends KtElement/* TODO: & JetDeclaration
     }
 
     public void genFunctionOrProperty(@NotNull KtDeclaration functionOrProperty) {
-        if (functionOrProperty instanceof KtNamedFunction) {
-            try {
+        try {
+            if (functionOrProperty instanceof KtNamedFunction) {
                 functionCodegen.gen((KtNamedFunction) functionOrProperty);
             }
-            catch (ProcessCanceledException e) {
-                throw e;
-            }
-            catch (CompilationException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                throw new CompilationException("Failed to generate function " + functionOrProperty.getName(), e, functionOrProperty);
-            }
-        }
-        else if (functionOrProperty instanceof KtProperty) {
-            try {
+            else if (functionOrProperty instanceof KtProperty) {
                 propertyCodegen.gen((KtProperty) functionOrProperty);
             }
-            catch (ProcessCanceledException e) {
-                throw e;
-            }
-            catch (CompilationException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                throw new CompilationException("Failed to generate property " + functionOrProperty.getName(), e, functionOrProperty);
+            else {
+                throw new IllegalArgumentException("Unknown parameter: " + functionOrProperty);
             }
         }
-        else {
-            throw new IllegalArgumentException("Unknown parameter: " + functionOrProperty);
+        catch (ProcessCanceledException e) {
+            throw e;
         }
+        catch (CompilationException e) {
+            if (e.getCause() instanceof ErrorTypeEncounteredException) {
+                reportErrorTypeEncountered((ErrorTypeEncounteredException) e.getCause(), e.getElement());
+                return;
+            }
+            throw e;
+        }
+        catch (Exception e) {
+            throw new CompilationException(
+                    "Failed to generate " + (functionOrProperty instanceof KtNamedFunction ? "function" : "property") + " " +
+                    functionOrProperty.getName(), e, functionOrProperty
+            );
+        }
+    }
+
+    private void reportErrorTypeEncountered(@NotNull ErrorTypeEncounteredException exception, @NotNull PsiElement element) {
+        state.getDiagnostics().report(ErrorsJvm.ERROR_TYPE_ENCOUNTERED.on(element, exception.getMessage()));
     }
 
     public static void genClassOrObject(

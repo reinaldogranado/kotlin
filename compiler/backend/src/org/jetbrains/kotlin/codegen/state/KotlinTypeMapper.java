@@ -72,7 +72,6 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature;
 import org.jetbrains.kotlin.resolve.scopes.AbstractScopeAdapter;
 import org.jetbrains.kotlin.resolve.scopes.MemberScope;
-import org.jetbrains.kotlin.serialization.deserialization.DeserializedType;
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedCallableMemberDescriptor;
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor;
 import org.jetbrains.kotlin.types.*;
@@ -449,7 +448,7 @@ public class KotlinTypeMapper {
 
         if (ErrorUtils.isError(descriptor)) {
             if (classBuilderMode != ClassBuilderMode.LIGHT_CLASSES) {
-                throw new IllegalStateException(generateErrorMessageForErrorType(jetType, descriptor));
+                throw new ErrorTypeEncounteredException(jetType, descriptor);
             }
             Type asmType = Type.getObjectType("error/NonExistentClass");
             if (signatureVisitor != null) {
@@ -575,37 +574,6 @@ public class KotlinTypeMapper {
     @NotNull
     public Type mapDefaultImpls(@NotNull ClassDescriptor descriptor) {
         return Type.getObjectType(mapType(descriptor).getInternalName() + JvmAbi.DEFAULT_IMPLS_SUFFIX);
-    }
-
-    @NotNull
-    private static String generateErrorMessageForErrorType(@NotNull KotlinType type, @NotNull DeclarationDescriptor descriptor) {
-        PsiElement declarationElement = DescriptorToSourceUtils.descriptorToDeclaration(descriptor);
-
-        if (declarationElement == null) {
-            String message = "Error type encountered: %s (%s).";
-            if (FlexibleTypesKt.upperIfFlexible(type) instanceof DeserializedType) {
-                message +=
-                        " One of the possible reasons may be that this type is not directly accessible from this module. " +
-                        "To workaround this error, try adding an explicit dependency on the module or library which contains this type " +
-                        "to the classpath";
-            }
-            return String.format(message, type, type.getClass().getSimpleName());
-        }
-
-        DeclarationDescriptor containingDeclaration = descriptor.getContainingDeclaration();
-        PsiElement parentDeclarationElement =
-                containingDeclaration != null ? DescriptorToSourceUtils.descriptorToDeclaration(containingDeclaration) : null;
-
-        return String.format(
-                "Error type encountered: %s (%s). Descriptor: %s. For declaration %s:%s in %s:%s",
-                type,
-                type.getClass().getSimpleName(),
-                descriptor,
-                declarationElement,
-                declarationElement.getText(),
-                parentDeclarationElement,
-                parentDeclarationElement != null ? parentDeclarationElement.getText() : "null"
-        );
     }
 
     private void writeGenericType(
