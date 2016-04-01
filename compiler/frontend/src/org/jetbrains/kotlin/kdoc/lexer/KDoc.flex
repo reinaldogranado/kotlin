@@ -61,7 +61,8 @@ QUALIFIED_NAME_START={ALPHA}
 QUALIFIED_NAME_CHAR={ALPHA}|{DIGIT}|[\.]
 QUALIFIED_NAME={QUALIFIED_NAME_START}{QUALIFIED_NAME_CHAR}*
 CODE_LINK=\[{QUALIFIED_NAME}\]
-CODE_FENCE="```".*
+CODE_FENCE_START=("```" | "~~~").*
+CODE_FENCE_END=("```" | "~~~")
 
 %%
 
@@ -147,7 +148,7 @@ CODE_FENCE="```".*
         return KDocTokens.MARKDOWN_INLINE_LINK;
     }
 
-    {CODE_FENCE} {
+    {CODE_FENCE_START} {
         yybegin(CODE_BLOCK_LINE_BEGINNING);
         return KDocTokens.TEXT;
     }
@@ -172,8 +173,17 @@ CODE_FENCE="```".*
 }
 
 <CODE_BLOCK_LINE_BEGINNING, CODE_BLOCK_CONTENTS_BEGINNING> {
-    {CODE_FENCE} {
-        yybegin(LINE_BEGINNING);
+    {CODE_FENCE_END} / [ \t\f]* [\n\r] [ \t\f]* {
+        // Code fence end
+        yybegin(CONTENTS);
+        return KDocTokens.TEXT;
+    }
+
+    {WHITE_SPACE_CHAR}+ {
+        if (yytextContainLineBreaks()) {
+            yybegin(CODE_BLOCK_LINE_BEGINNING);
+            return TokenType.WHITE_SPACE;
+        }
         return KDocTokens.TEXT;
     }
 

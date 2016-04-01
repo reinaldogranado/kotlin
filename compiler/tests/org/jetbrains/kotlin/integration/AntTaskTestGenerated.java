@@ -47,6 +47,12 @@ public class AntTaskTestGenerated extends AbstractAntTaskTest {
         doTest(fileName);
     }
 
+    @TestMetadata("doNotFailOnWarnings")
+    public void testDoNotFailOnWarnings() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/integration/ant/jvm/doNotFailOnWarnings/");
+        doTest(fileName);
+    }
+
     @TestMetadata("failOnErrorByDefault")
     public void testFailOnErrorByDefault() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/integration/ant/jvm/failOnErrorByDefault/");
