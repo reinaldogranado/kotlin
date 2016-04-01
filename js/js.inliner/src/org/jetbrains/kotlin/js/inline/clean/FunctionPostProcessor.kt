@@ -25,7 +25,8 @@ class FunctionPostProcessor(private val root: JsBlock) {
         { TemporaryVariableElimination(root).apply() },
         { IfStatementReduction(root).apply() },
         { DeadCodeElimination(root).apply() },
-        { RedundantVariableDeclarationElimination(root).apply() }
+        { RedundantVariableDeclarationElimination(root).apply() },
+        { IneffectiveStatementElimination(root).apply() }
     )
     // TODO: reduce to A || B, A && B if possible
 

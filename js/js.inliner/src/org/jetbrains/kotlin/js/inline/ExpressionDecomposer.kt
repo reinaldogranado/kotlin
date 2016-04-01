@@ -57,12 +57,15 @@ internal class ExpressionDecomposer private constructor(
 
     companion object {
         @JvmStatic fun preserveEvaluationOrder(
-                scope: JsScope, statement: JsStatement, canBeExtractedByInliner: (JsNode)->Boolean
+                vars: Set<JsName>,
+                scope: JsScope,
+                statement: JsStatement,
+                canBeExtractedByInliner: (JsNode)->Boolean
         ): List<JsStatement> {
             val decomposer = with (statement) {
                 val extractable = match(canBeExtractedByInliner)
                 val containsExtractable = withParentsOfNodes(extractable)
-                val nodesWithSideEffect = match { it is JsExpression && it.canHaveOwnSideEffect() }
+                val nodesWithSideEffect = match { it is JsExpression && it.canHaveOwnSideEffect(vars) }
                 val containsNodeWithSideEffect = withParentsOfNodes(nodesWithSideEffect)
 
                 ExpressionDecomposer(scope, containsExtractable, containsNodeWithSideEffect)
@@ -145,7 +148,7 @@ internal class ExpressionDecomposer private constructor(
 
         val tmp = Temporary(arg1)
         addStatement(tmp.variable)
-        var test = if (operator == JsBinaryOperator.OR) not(tmp.nameRef) else tmp.nameRef
+        val test = if (operator == JsBinaryOperator.OR) not(tmp.nameRef) else tmp.nameRef
         val arg2Eval = withNewAdditionalStatements {
             arg2 = accept(arg2)
             addStatement(tmp.assign(arg2))
@@ -169,7 +172,7 @@ internal class ExpressionDecomposer private constructor(
             // Must be (someThingWithSideEffect).x = arg2, because arg1 can have side effect
             assert(arg1 is JsNameRef) { "Valid JavaScript left-hand side must be JsNameRef, got: $this" }
             val arg1AsRef = arg1 as JsNameRef
-            arg1AsRef.qualifier = arg1AsRef.qualifier!!.extractToTemporary()
+            arg1AsRef.qualifier = arg1AsRef.qualifier?.extractToTemporary()
         }
         else {
             arg1 = arg1.extractToTemporary()
@@ -258,7 +261,7 @@ internal class ExpressionDecomposer private constructor(
 
     private fun Callable.process() {
         qualifier = accept(qualifier)
-        var matchedIndices = arguments.indicesOfExtractable
+        val matchedIndices = arguments.indicesOfExtractable
         if (!matchedIndices.hasNext()) return
 
         if (qualifier in containsNodeWithSideEffect) {
@@ -321,14 +324,10 @@ internal class ExpressionDecomposer private constructor(
     private inner class Temporary(val value: JsExpression? = null) {
         val name: JsName = scope.declareTemporary()
 
-        val variable: JsVars = newVar(name, value)
+        val variable: JsVars = newVar(name, value).apply { synthetic = true }
 
         val nameRef: JsExpression
             get() = name.makeRef()
-
-        init {
-            variable.synthetic = true
-        }
 
         fun assign(value: JsExpression): JsStatement {
             val statement = JsExpressionStatement(assignment(nameRef, value))

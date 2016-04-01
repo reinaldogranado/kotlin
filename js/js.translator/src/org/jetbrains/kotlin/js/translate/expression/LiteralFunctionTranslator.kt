@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.js.translate.expression
 
 import com.google.dart.compiler.backend.js.ast.*
 import com.google.dart.compiler.backend.js.ast.metadata.isLocal
+import com.google.dart.compiler.backend.js.ast.metadata.sideEffects
 import com.google.dart.compiler.backend.js.ast.metadata.staticRef
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.js.inline.util.getInnerFunction
@@ -60,7 +61,7 @@ class LiteralFunctionTranslator(context: TranslationContext) : AbstractTranslato
         }
 
         lambda.isLocal = true
-        return invokingContext.define(descriptor, lambda)
+        return invokingContext.define(descriptor, lambda).apply { sideEffects = false }
     }
 }
 
@@ -75,8 +76,8 @@ fun JsFunction.withCapturedParameters(context: TranslationContext, invokingConte
         return invokingContext.getNameForDescriptor(descriptor).makeRef()
     }
 
-    val ref = invokingContext.define(descriptor, this)
-    val invocation = JsInvocation(ref)
+    val ref = invokingContext.define(descriptor, this).apply { sideEffects = false }
+    val invocation = JsInvocation(ref).apply { sideEffects = false }
 
     val invocationArguments = invocation.arguments
     val functionParameters = this.parameters
@@ -142,9 +143,12 @@ private fun moveCapturedLocalInside(capturingFunction: JsFunction, capturedName:
  * and localFunAlias declaration is moved inside.
  *
  * For example:
+ *
+ * ```
  *  val x = 0
- *  [inline] fun id() = x
+ *  inline fun id() = x
  *  val lambda = {println(id())}
+ * ```
  *
  * `lambda` should capture x in this case
  */

@@ -51,6 +51,7 @@ public class JsInliner extends JsVisitorWithContextImpl {
 
     // these are needed for error reporting, when inliner detects cycle
     private final Stack<JsFunction> namedFunctionsStack = new Stack<JsFunction>();
+    private final Deque<Set<JsName>> localVarsStack = new ArrayDeque<Set<JsName>>();
     private final LinkedList<JsCallInfo> inlineCallInfos = new LinkedList<JsCallInfo>();
     private final Function1<JsNode, Boolean> canBeExtractedByInliner = new Function1<JsNode, Boolean>() {
         @Override
@@ -92,6 +93,8 @@ public class JsInliner extends JsVisitorWithContextImpl {
             namedFunctionsStack.push(function);
         }
 
+        localVarsStack.push(CollectUtilsKt.collectDefinedNames(function.getBody()));
+
         return super.visit(function, context);
     }
 
@@ -113,6 +116,8 @@ public class JsInliner extends JsVisitorWithContextImpl {
         if (!namedFunctionsStack.empty() && namedFunctionsStack.peek() == function) {
             namedFunctionsStack.pop();
         }
+
+        localVarsStack.pop();
     }
 
     @Override
@@ -163,8 +168,12 @@ public class JsInliner extends JsVisitorWithContextImpl {
             int i = 0;
 
             while (i < statements.size()) {
+                Set<JsName> vars = new HashSet<JsName>();
+                for (Set<JsName> localVars : localVarsStack) {
+                    vars.addAll(localVars);
+                }
                 List<JsStatement> additionalStatements =
-                        ExpressionDecomposer.preserveEvaluationOrder(scope, statements.get(i), canBeExtractedByInliner);
+                        ExpressionDecomposer.preserveEvaluationOrder(vars, scope, statements.get(i), canBeExtractedByInliner);
                 statements.addAll(i, additionalStatements);
                 i += additionalStatements.size() + 1;
             }
@@ -175,8 +184,6 @@ public class JsInliner extends JsVisitorWithContextImpl {
 
     private void inline(@NotNull JsInvocation call, @NotNull JsContext context) {
         JsInliningContext inliningContext = getInliningContext();
-        FunctionContext functionContext = getFunctionContext();
-        functionContext.declareFunctionConstructorCalls(call.getArguments());
         InlineableResult inlineableResult = getInlineableCallReplacement(call, inliningContext);
 
         JsStatement inlineableBody = inlineableResult.getInlineableBody();
@@ -202,7 +209,7 @@ public class JsInliner extends JsVisitorWithContextImpl {
 
         if (currentStatement instanceof JsExpressionStatement &&
             ((JsExpressionStatement) currentStatement).getExpression() == call &&
-            (resultExpression == null || !SideEffectUtilsKt.canHaveSideEffect(resultExpression))
+            resultExpression == null
         ) {
             statementContext.removeMe();
         }
@@ -216,7 +223,8 @@ public class JsInliner extends JsVisitorWithContextImpl {
         return inliningContexts.peek();
     }
 
-    @NotNull FunctionContext getFunctionContext() {
+    @NotNull
+    private FunctionContext getFunctionContext() {
         return getInliningContext().getFunctionContext();
     }
 
@@ -245,7 +253,7 @@ public class JsInliner extends JsVisitorWithContextImpl {
         }
     }
 
-    public boolean hasToBeInlined(@NotNull JsInvocation call) {
+    private boolean hasToBeInlined(@NotNull JsInvocation call) {
         InlineStrategy strategy = MetadataProperties.getInlineStrategy(call);
         if (strategy == null || !strategy.isInline()) return false;
 

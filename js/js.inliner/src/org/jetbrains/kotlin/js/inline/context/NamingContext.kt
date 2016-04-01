@@ -45,7 +45,7 @@ class NamingContext(
     fun replaceName(name: JsName, replacement: JsExpression) {
         assert(!renamings.containsKey(name)) { "$name has been renamed already" }
 
-        renamings.put(name, replacement)
+        renamings[name] = replacement
     }
 
     fun getFreshName(candidate: String): JsName = scope.declareFreshName(candidate)
@@ -55,6 +55,8 @@ class NamingContext(
     fun newVar(name: JsName, value: JsExpression? = null) {
         val vars = JsAstUtils.newVar(name, value)
         vars.synthetic = true
-        declarations.add(vars)
+        declarations += vars
     }
+
+    fun getReplacement(name: JsName) = renamings[name]
 }

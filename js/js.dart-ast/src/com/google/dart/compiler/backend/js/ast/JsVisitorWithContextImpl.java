@@ -158,7 +158,20 @@ public class JsVisitorWithContextImpl extends JsVisitorWithContext {
             return statements.get(0);
         }
 
-        return new JsBlock(statements);
+        List<JsStatement> flatStatements = new ArrayList<JsStatement>();
+        flatten(statements, flatStatements);
+        return new JsBlock(flatStatements);
+    }
+
+    private void flatten(List<JsStatement> statements, List<JsStatement> output) {
+        for (JsStatement statement : statements) {
+            if (statement instanceof JsBlock) {
+                flatten(((JsBlock) statement).getStatements(), output);
+            }
+            else {
+                output.add(statement);
+            }
+        }
     }
 
     @Override

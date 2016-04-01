@@ -16,35 +16,22 @@
 
 package org.jetbrains.kotlin.js.inline.util
 
-import com.google.dart.compiler.backend.js.ast.JsLiteral.*
 import com.google.dart.compiler.backend.js.ast.*
-import com.google.dart.compiler.backend.js.ast.metadata.typeCheck
+import com.google.dart.compiler.backend.js.ast.metadata.HasMetadata
+import com.google.dart.compiler.backend.js.ast.metadata.sideEffects
 import org.jetbrains.kotlin.js.translate.utils.jsAstUtils.any
+import org.jetbrains.kotlin.js.translate.utils.name
 
-fun JsExpression.canHaveSideEffect(): Boolean =
-        any { it is JsExpression && it.canHaveOwnSideEffect() }
+fun JsExpression.canHaveSideEffect(localVars: Set<JsName>): Boolean =
+        any { it is JsExpression && it.canHaveOwnSideEffect(localVars) }
 
-fun JsExpression.canHaveOwnSideEffect(): Boolean =
+fun JsExpression.canHaveOwnSideEffect(vars: Set<JsName>): Boolean =
     when (this) {
-        is JsValueLiteral,
         is JsConditional,
-        is JsArrayAccess,
-        is JsArrayLiteral,
-        is JsNameRef -> false
+        is JsLiteral -> false
         is JsBinaryOperation -> operator.isAssignment
-        is JsInvocation -> !isFunctionCreatorInvocation(this)
+        is JsNameRef -> !(qualifier == null && name in vars) && sideEffects
+        is JsInvocation -> !isFunctionCreatorInvocation(this) && sideEffects
+        is HasMetadata -> sideEffects
         else -> true
     }
-
-fun JsExpression.needToAlias(): Boolean =
-        any { it is JsExpression && it.shouldHaveOwnAlias() }
-
-fun JsExpression.shouldHaveOwnAlias(): Boolean =
-        when (this) {
-            is JsThisRef,
-            is JsConditional,
-            is JsBinaryOperation,
-            is JsArrayLiteral -> true
-            is JsInvocation -> if (typeCheck == null) canHaveSideEffect() else false
-            else -> canHaveOwnSideEffect()
-        }

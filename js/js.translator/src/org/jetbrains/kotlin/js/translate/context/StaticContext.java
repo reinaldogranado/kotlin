@@ -586,7 +586,7 @@ public final class StaticContext {
     private static JsExpression applySideEffects(JsExpression expression, DeclarationDescriptor descriptor) {
         if (expression instanceof HasMetadata) {
             if (descriptor instanceof FunctionDescriptor || descriptor instanceof PackageFragmentDescriptor ||
-                    descriptor instanceof ClassDescriptor) {
+                descriptor instanceof ClassDescriptor) {
                 MetadataProperties.setSideEffects((HasMetadata) expression, false);
             }
         }

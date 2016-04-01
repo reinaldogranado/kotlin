@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.js.inline.util.getSimpleName
 import org.jetbrains.kotlin.js.inline.util.isCallInvocation
 import org.jetbrains.kotlin.js.inline.util.isFunctionCreator
 
-import com.intellij.util.containers.ContainerUtil
 import java.util.IdentityHashMap
 import org.jetbrains.kotlin.js.inline.FunctionReader
 import com.google.dart.compiler.backend.js.ast.metadata.descriptor
@@ -41,6 +40,7 @@ abstract class FunctionContext(
      * @see getFunctionWithClosure
      */
     private val functionsWithClosure = IdentityHashMap<JsInvocation, JsFunction?>()
+    private val parameterMap = mutableMapOf<String, JsInvocation>()
 
     protected abstract fun lookUpStaticFunction(functionName: JsName?): JsFunction?
 
@@ -56,12 +56,12 @@ abstract class FunctionContext(
         return function.scope
     }
 
-    fun declareFunctionConstructorCalls(arguments: List<JsExpression>) {
-        val calls = ContainerUtil.findAll<JsExpression, JsInvocation>(arguments, JsInvocation::class.java)
+    fun declareFunctionConstructorCalls(parameters: List<JsName>, arguments: List<JsExpression>) {
+        val items = arguments.zip(parameters).map { Pair(it.first as? JsInvocation, it.second) }
 
-        for (call in calls) {
-            val callName = getSimpleName(call)
-            if (callName == null) continue
+        for ((call, parameter) in items) {
+            if (call == null) continue
+            val callName = getSimpleName(call) ?: continue
 
             val staticRef = callName.staticRef
             if (staticRef !is JsFunction) continue
@@ -70,6 +70,8 @@ abstract class FunctionContext(
             if (isFunctionCreator(functionCalled)) {
                 declareFunctionConstructorCall(call)
             }
+
+            parameterMap[parameter.ident] = call
         }
     }
 
@@ -120,13 +122,23 @@ abstract class FunctionContext(
         }
 
         /** in case 4, 5 get ref (reduce 4, 5 to 2, 3 accordingly) */
-        @Suppress("USELESS_CAST") // NB do not remove 'as JsNode' below until KT-10752 is fixed
         if (callQualifier is JsNameRef) {
+            if (callQualifier.qualifier == null) {
+                val aliasedInvocation = parameterMap[callQualifier.name!!.ident]
+                if (aliasedInvocation != null) {
+                    return functionsWithClosure.getOrPut(call) {
+                        val closureCreator = getFunctionDefinitionImpl(aliasedInvocation)!!
+                        val innerFunction = closureCreator.getInnerFunction()!!
+                        applyCapturedArgs(aliasedInvocation, innerFunction, closureCreator)
+                    }
+                }
+            }
+
             val staticRef = callQualifier.name?.staticRef
 
             callQualifier = when (staticRef) {
-                is JsNameRef -> staticRef as JsNode
-                is JsInvocation -> staticRef as JsNode
+                is JsNameRef -> staticRef
+                is JsInvocation -> staticRef
                 is JsFunction, null -> callQualifier
                 else -> throw AssertionError("Unexpected static reference type ${staticRef.javaClass}")
             }
@@ -163,8 +175,7 @@ abstract class FunctionContext(
      *          `function () { return 10 * 2 }`
      */
     private fun getFunctionWithClosure(call: JsInvocation): JsFunction {
-        val constructed = functionsWithClosure.get(call)
-
+        val constructed = functionsWithClosure[call]
         if (constructed is JsFunction) return constructed
 
         val name = getSimpleName(call)!!
@@ -172,7 +183,7 @@ abstract class FunctionContext(
         val innerFunction = closureCreator.getInnerFunction()!!
 
         val withCapturedArgs = applyCapturedArgs(call, innerFunction, closureCreator)
-        functionsWithClosure.put(call, withCapturedArgs)
+        functionsWithClosure[call] = withCapturedArgs
 
         return withCapturedArgs
     }

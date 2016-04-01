@@ -51,8 +51,8 @@ private constructor(
         replaceThis()
         removeDefaultInitializers(arguments, parameters, body)
         aliasArgumentsIfNeeded(namingContext, arguments, parameters)
+        updateLambdaAliases(parameters)
         renameLocalNames(namingContext, invokedFunction)
-        removeStatementsAfterTopReturn()
         processReturns()
 
         namingContext.applyRenameTo(body)
@@ -61,28 +61,28 @@ private constructor(
         }
     }
 
+    private fun updateLambdaAliases(parameters: List<JsParameter>) {
+        val functionContext = inliningContext.functionContext
+        val parameterNames = parameters.map { it.name }.map {
+            val alias = namingContext.getReplacement(it)
+            (if (alias is JsNameRef && alias.qualifier == null) alias.name else null) ?: it
+        }
+
+        functionContext.declareFunctionConstructorCalls(parameterNames, call.arguments)
+        inliningContext.functionContext
+    }
+
     private fun replaceThis() {
         if (!hasThisReference(body)) return
 
         var thisReplacement = getThisReplacement(call)
         if (thisReplacement == null || thisReplacement is JsLiteral.JsThisRef) return
 
-        if (thisReplacement.needToAlias()) {
-            val thisName = namingContext.getFreshName(getThisAlias())
-            namingContext.newVar(thisName, thisReplacement)
-            thisReplacement = thisName.makeRef()
-        }
+        val thisName = namingContext.getFreshName(getThisAlias())
+        namingContext.newVar(thisName, thisReplacement)
+        thisReplacement = thisName.makeRef()
 
         replaceThisReference(body, thisReplacement)
-    }
-
-    private fun removeStatementsAfterTopReturn() {
-        val statements = body.statements
-
-        val returnIndex = statements.indexOfFirst { it is JsReturn }
-        if (returnIndex >= 0) {
-            statements.subList(returnIndex + 1, statements.size).clear()
-        }
     }
 
     private fun processReturns() {
