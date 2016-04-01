@@ -33,7 +33,6 @@ import org.junit.Rule
 import org.junit.rules.TestName
 import org.mozilla.javascript.Context
 import java.io.File
-import java.util.regex.Pattern
 
 abstract class BasicOptimizerTest(private var basePath: String) {
     @Rule
@@ -104,7 +103,7 @@ abstract class BasicOptimizerTest(private var basePath: String) {
 
                 override fun visitIf(x: JsIf) {
                     val line = x.getData<Int?>("line")
-                    if (line != null && line >= 0 && line - 1 < comments.size && comments[line]) {
+                    if (line != null && line in comments.indices && comments[line]) {
                         x.synthetic = true
                     }
                     super.visitIf(x)
@@ -114,7 +113,7 @@ abstract class BasicOptimizerTest(private var basePath: String) {
     }
 
     private fun findSyntheticComments(code: String): List<Boolean> {
-        val parts = Pattern.compile("\\r\\n|\\r|\\n").split(code)
+        val parts = code.lines()
         return parts.map { it.contains("/*synthetic*/") }
     }
 
@@ -122,7 +121,6 @@ abstract class BasicOptimizerTest(private var basePath: String) {
 
 
     private fun astToString(ast: List<JsStatement>): String {
-        val result = StringBuilder()
         val output = TextOutputImpl()
         val visitor = JsSourceGenerationVisitor(output, null)
         for (stmt in ast) {
