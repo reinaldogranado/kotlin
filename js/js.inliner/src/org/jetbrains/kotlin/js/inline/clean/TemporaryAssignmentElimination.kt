@@ -154,14 +154,8 @@ internal class TemporaryAssignmentElimination(private val root: JsBlock) {
     private fun calculateDeclarations() {
         usages.keys.forEach { getUsage(it) }
 
-        object : JsVisitorWithContextImpl() {
-            override fun visit(x: JsExpressionStatement, ctx: JsContext<JsNode>): Boolean {
-                if (x in statementsToRemove) {
-                    hasChanges = true
-                    ctx.removeMe()
-                    return false
-                }
-
+        object : RecursiveJsVisitor() {
+            override fun visitExpressionStatement(x: JsExpressionStatement) {
                 val assignment = JsAstUtils.decomposeAssignmentToVariable(x.expression)
                 if (assignment != null) {
                     val usage = getUsage(assignment.first)
@@ -169,7 +163,7 @@ internal class TemporaryAssignmentElimination(private val root: JsBlock) {
                         usage.count++
                     }
                 }
-                return super.visit(x, ctx)
+                super.visitExpressionStatement(x)
             }
         }.accept(root)
     }
