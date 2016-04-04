@@ -161,6 +161,7 @@ Issues fixed:
 - Fix several issues leading to exceptions: [KT-11579](https://youtrack.jetbrains.com/issue/KT-11579), [KT-11580](https://youtrack.jetbrains.com/issue/KT-11580)
 - Fixed NoSuchFieldException in Kotlin module settings on IDEA Ultimate
 - [KT-11702](https://youtrack.jetbrains.com/issue/KT-11702) Fixed computation of values in Java annotations referred by Kotlin annotation entries
+- [KT-11689](https://youtrack.jetbrains.com/issue/KT-11689) Fixed ClassCastException from Spring notification balloon
 
 #### Debugger
 
