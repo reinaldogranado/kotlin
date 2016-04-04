@@ -1086,6 +1086,10 @@ fun main(args: Array<String>) {
         testClass<AbstractSuperTest>() {
             model("codegen/box/super/", targetBackend = TargetBackend.JS)
         }
+
+        testClass<AbstractNonLocalReturnsTest>() {
+            model("codegen/boxInline/nonLocalReturns/", targetBackend = TargetBackend.JS)
+        }
     }
 }
 
