@@ -162,6 +162,7 @@ Issues fixed:
 - Fixed NoSuchFieldException in Kotlin module settings on IDEA Ultimate
 - [KT-11702](https://youtrack.jetbrains.com/issue/KT-11702) Fixed computation of values in Java annotations referred by Kotlin annotation entries
 - [KT-11689](https://youtrack.jetbrains.com/issue/KT-11689) Fixed ClassCastException from Spring notification balloon
+- [KT-11725](https://youtrack.jetbrains.com/issue/KT-11725) Fixed renaming of injected SpEL references
 
 #### Debugger
 
