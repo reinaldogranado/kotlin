@@ -1,5 +1,7 @@
 package foo
 
+// CHECK_NOT_CALLED: bar_vux9f0$
+
 inline fun bar(n: Int, x: Int) = if (n <= 5) x else 10
 
 fun test(n: Int): Int = bar(n, fizz(n))
