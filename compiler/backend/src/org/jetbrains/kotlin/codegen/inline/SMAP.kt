@@ -66,6 +66,11 @@ open class NestedSourceMapper(
         parent: SourceMapper, val ranges: List<RangeMapping>, sourceInfo: SourceInfo
 ) : DefaultSourceMapper(sourceInfo, parent) {
     override fun visitLineNumber(iv: MethodVisitor, lineNumber: Int, start: Label) {
+        if (lineNumber == 0) {
+            parent!!.visitLineNumber(iv, 0, start)
+            return
+        }
+
         val index = ranges.binarySearch(RangeMapping(lineNumber, lineNumber, 1), Comparator {
             value, key ->
             if (key.dest in value) 0 else RangeMapping.Comparator.compare(value, key)
@@ -102,6 +107,11 @@ open class InlineLambdaSourceMapper(
     }
 
     override fun visitLineNumber(iv: MethodVisitor, lineNumber: Int, start: Label) {
+        if (lineNumber == 0) {
+            parent!!.visitLineNumber(iv, 0, start)
+            return
+        }
+
         val index = ranges.binarySearch(RangeMapping(lineNumber, lineNumber, 1), Comparator {
             value, key ->
             if (key.dest in value) 0 else RangeMapping.Comparator.compare(value, key)
@@ -210,10 +220,14 @@ open class DefaultSourceMapper(val sourceInfo: SourceInfo, override val parent: 
     override fun visitLineNumber(iv: MethodVisitor, lineNumber: Int, start: Label) {
         if (lineNumber < 0) {
             //no source information, so just skip this linenumber
-            return
         }
-        val mappedLineIndex = createMapping(lineNumber)
-        iv.visitLineNumber(mappedLineIndex, start)
+        else if (lineNumber == 0) {
+            iv.visitLineNumber(0, start)
+        }
+        else {
+            val mappedLineIndex = createMapping(lineNumber)
+            iv.visitLineNumber(mappedLineIndex, start)
+        }
     }
 
     protected fun createMapping(lineNumber: Int): Int {
