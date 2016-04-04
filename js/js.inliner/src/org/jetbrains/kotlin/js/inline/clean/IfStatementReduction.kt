@@ -31,11 +31,11 @@ class IfStatementReduction(private val root: JsStatement) {
 
     val visitor = object : JsVisitorWithContextImpl() {
         override fun visit(x: JsIf, ctx: JsContext<JsNode>): Boolean {
-            var thenStatement = x.thenStatement
-            var elseStatement = x.elseStatement
-            if (x.synthetic && elseStatement != null) {
-                thenStatement = extractSingleStatement(thenStatement)
-                elseStatement = extractSingleStatement(elseStatement)
+            val thenStatementRaw = x.thenStatement
+            val elseStatementRaw = x.elseStatement
+            if (x.synthetic && elseStatementRaw != null) {
+                val thenStatement = extractSingleStatement(thenStatementRaw)
+                val elseStatement = extractSingleStatement(elseStatementRaw)
 
                 if (thenStatement is JsExpressionStatement && elseStatement is JsExpressionStatement) {
                     val thenAssignment = JsAstUtils.decomposeAssignment(thenStatement.expression)
@@ -77,7 +77,10 @@ class IfStatementReduction(private val root: JsStatement) {
                     if (thenValue != null && elseValue != null) {
                         hasChanges = true
                         val ternary = JsConditional(x.ifExpression, thenValue, elseValue)
-                        val replacement = JsReturn(ternary)
+                        val replacement = JsReturn(ternary).apply {
+                            copyMetadataFrom(thenStatement)
+                            copyMetadataFrom(elseStatement)
+                        }
                         accept(replacement)
                         ctx.replaceMe(replacement)
                         return false

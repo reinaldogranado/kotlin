@@ -1,7 +1,4 @@
 // CHECK_LABELS_COUNT: function=test0 count=0
-// CHECK_LABELS_COUNT: function=test1 count=0
-// CHECK_LABELS_COUNT: function=test2 count=0
-// CHECK_LABELS_COUNT: function=test3 count=0
 
 package foo
 
@@ -18,26 +15,6 @@ fun test0() {
     assertEquals("then block", b)
 }
 
-fun test1() {
-    run label@ {
-        return@label false
-    }
-}
-
-fun test2() {
-    myRun label@ {
-        return@label false
-    }
-}
-
-// KT-7487
-public fun test3() {
-    val f = Foo()
-    f.iter label@ {
-        return@label false
-    }
-}
-
 class Foo {
     inline fun iter(body: ()->Boolean) {
         for (i in 0 .. 10) {
@@ -48,9 +25,6 @@ class Foo {
 
 fun box(): String {
     test0()
-    test1()
-    test2()
-    test3()
 
     return "OK"
 }
