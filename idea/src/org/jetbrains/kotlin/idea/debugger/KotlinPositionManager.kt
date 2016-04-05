@@ -45,6 +45,7 @@ import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding
 import org.jetbrains.kotlin.codegen.inline.InlineCodegenUtil
+import org.jetbrains.kotlin.codegen.inline.SMAP
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -126,6 +127,9 @@ class KotlinPositionManager(private val myDebugProcess: DebugProcess) : MultiReq
             -1
         }
 
+        if (lineNumber == SMAP.DEBUG_SPLIT_LINENUMBER - 1) {
+            return SourcePosition.createFromLine(psiFile, 0)
+        }
 
         if (lineNumber >= 0) {
             val lambdaOrFunIfInside = getLambdaOrFunIfInside(location, psiFile as KtFile, lineNumber)
