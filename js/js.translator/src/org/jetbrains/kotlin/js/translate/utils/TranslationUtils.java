@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.js.translate.utils;
 
 import com.google.dart.compiler.backend.js.ast.*;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
@@ -28,8 +27,6 @@ import org.jetbrains.kotlin.js.translate.context.TemporaryConstVariable;
 import org.jetbrains.kotlin.js.translate.context.TranslationContext;
 import org.jetbrains.kotlin.js.translate.general.Translation;
 import org.jetbrains.kotlin.psi.*;
-import org.jetbrains.kotlin.psi.psiUtil.PsiUtilsKt;
-import org.jetbrains.kotlin.resolve.BindingContextUtils;
 import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.types.KotlinType;
 
@@ -43,11 +40,7 @@ import static org.jetbrains.kotlin.js.translate.utils.BindingUtils.getCallableDe
 import static org.jetbrains.kotlin.js.translate.utils.JsAstUtils.assignment;
 import static org.jetbrains.kotlin.js.translate.utils.JsAstUtils.createDataDescriptor;
 import static org.jetbrains.kotlin.js.translate.utils.ManglingUtils.getMangledName;
-import static org.jetbrains.kotlin.resolve.BindingContext.DECLARATION_TO_DESCRIPTOR;
-import static org.jetbrains.kotlin.resolve.BindingContext.LABEL_TARGET;
 import static org.jetbrains.kotlin.resolve.DescriptorUtils.isAnonymousObject;
-import static org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionExpression;
-import static org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionLiteral;
 
 public final class TranslationUtils {
 
@@ -292,30 +285,5 @@ public final class TranslationUtils {
             suggestedName += context.getNameForDescriptor(descriptor).getIdent();
         }
         return suggestedName;
-    }
-
-    @Nullable
-    public static DeclarationDescriptor getNonLocalReturnTarget(
-        @NotNull KtReturnExpression expression,
-        @NotNull TranslationContext context
-    ) {
-        DeclarationDescriptor descriptor = context.getDeclarationDescriptor();
-        assert descriptor instanceof CallableMemberDescriptor : "Return expression can only be inside callable declaration: " +
-                                                                PsiUtilsKt.getTextWithLocation(expression);
-        KtSimpleNameExpression target = expression.getTargetLabel();
-
-        //call inside lambda
-        if (isFunctionLiteral(descriptor) || isFunctionExpression(descriptor)) {
-            if (target == null) {
-                if (isFunctionLiteral(descriptor)) {
-                    return BindingContextUtils.getContainingFunctionSkipFunctionLiterals(descriptor, true).getFirst();
-                }
-            }
-            else {
-                PsiElement element = context.bindingContext().get(LABEL_TARGET, target);
-                return context.bindingContext().get(DECLARATION_TO_DESCRIPTOR, element);
-            }
-        }
-        return descriptor;
     }
 }

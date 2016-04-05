@@ -63,6 +63,8 @@ import static org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils.getRecei
 import static org.jetbrains.kotlin.js.translate.utils.TranslationUtils.translateInitializerForProperty;
 import static org.jetbrains.kotlin.resolve.BindingContext.*;
 import static org.jetbrains.kotlin.resolve.BindingContextUtils.isVarCapturedInClosure;
+import static org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionExpression;
+import static org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionLiteral;
 
 public final class ExpressionVisitor extends TranslatorVisitor<JsNode> {
     @Override
@@ -157,9 +159,35 @@ public final class ExpressionVisitor extends TranslatorVisitor<JsNode> {
             jsReturn = new JsReturn(jsReturnExpression);
         }
 
-        MetadataProperties.setReturnTarget(jsReturn, TranslationUtils.getNonLocalReturnTarget(jetReturnExpression, context));
+        MetadataProperties.setReturnTarget(jsReturn, getNonLocalReturnTarget(jetReturnExpression, context));
 
         return jsReturn.source(jetReturnExpression);
+    }
+
+
+    @Nullable
+    private static DeclarationDescriptor getNonLocalReturnTarget(
+            @NotNull KtReturnExpression expression,
+            @NotNull TranslationContext context
+    ) {
+        DeclarationDescriptor descriptor = context.getDeclarationDescriptor();
+        assert descriptor instanceof CallableMemberDescriptor : "Return expression can only be inside callable declaration: " +
+                                                                PsiUtilsKt.getTextWithLocation(expression);
+        KtSimpleNameExpression target = expression.getTargetLabel();
+
+        //call inside lambda
+        if (isFunctionLiteral(descriptor) || isFunctionExpression(descriptor)) {
+            if (target == null) {
+                if (isFunctionLiteral(descriptor)) {
+                    return BindingContextUtils.getContainingFunctionSkipFunctionLiterals(descriptor, true).getFirst();
+                }
+            }
+            else {
+                PsiElement element = context.bindingContext().get(LABEL_TARGET, target);
+                return context.bindingContext().get(DECLARATION_TO_DESCRIPTOR, element);
+            }
+        }
+        return descriptor;
     }
 
     @Override

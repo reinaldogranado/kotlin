@@ -192,12 +192,7 @@ public class JsInliner extends JsVisitorWithContextImpl {
          * @see FunctionInlineMutator.isResultNeeded()
          */
         if (resultExpression == null) {
-            if (statementContext.getCurrentNode() instanceof JsReturn) {
-                statementContext.replaceMe(new JsReturn());
-            }
-            else {
-                statementContext.removeMe();
-            }
+            statementContext.removeMe();
             return;
         }
 
