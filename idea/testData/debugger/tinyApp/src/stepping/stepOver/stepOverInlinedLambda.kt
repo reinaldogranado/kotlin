@@ -49,4 +49,4 @@ class A {
 
 fun test(i: Int) = 1
 
-// STEP_OVER: 11
+// STEP_OVER: 12
