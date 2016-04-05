@@ -1,8 +1,8 @@
 package stepOverInlinedLambda
 
 fun main(args: Array<String>) {
-    val a = A()
     //Breakpoint!
+    val a = A()
     foo { test(1) }
     foo {
         test(2)
