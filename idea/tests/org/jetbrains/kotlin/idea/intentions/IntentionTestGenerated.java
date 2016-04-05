@@ -6517,6 +6517,12 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             doTest(fileName);
         }
 
+        @TestMetadata("filter_mergeMultiple.kt")
+        public void testFilter_mergeMultiple() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/filter_mergeMultiple.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("firstOrNull_ifAssign.kt")
         public void testFirstOrNull_ifAssign() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/firstOrNull_ifAssign.kt");
@@ -6574,6 +6580,12 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
         @TestMetadata("firstOrNull_return_comment.kt")
         public void testFirstOrNull_return_comment() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/firstOrNull_return_comment.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("firstOrNull_withMergedFilter.kt")
+        public void testFirstOrNull_withMergedFilter() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/firstOrNull_withMergedFilter.kt");
             doTest(fileName);
         }
 
