@@ -6607,6 +6607,12 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             doTest(fileName);
         }
 
+        @TestMetadata("flatMap_workingVarStillNeeded.kt")
+        public void testFlatMap_workingVarStillNeeded() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/flatMap_workingVarStillNeeded.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("flatMap_wrongContinue.kt")
         public void testFlatMap_wrongContinue() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/intentions/loopToCallChain/flatMap_wrongContinue.kt");
