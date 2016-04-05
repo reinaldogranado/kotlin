@@ -77,10 +77,7 @@ class IfStatementReduction(private val root: JsStatement) {
                     if (thenValue != null && elseValue != null) {
                         hasChanges = true
                         val ternary = JsConditional(x.ifExpression, thenValue, elseValue)
-                        val replacement = JsReturn(ternary).apply {
-                            copyMetadataFrom(thenStatement)
-                            copyMetadataFrom(elseStatement)
-                        }
+                        val replacement = JsReturn(ternary)
                         accept(replacement)
                         ctx.replaceMe(replacement)
                         return false

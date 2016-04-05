@@ -41,7 +41,6 @@ var JsInvocation.typeCheck: TypeCheck? by MetadataProperty(default = null)
 /**
  * For function and lambda bodies indicates what declaration corresponds to.
  * When absent (`null`) on body of a named function, this function is from external JS module.
- * Fallback to [descriptor] of the call site in the latter case.
  */
 var SourceInfoAwareJsNode.declarationDescriptor: DeclarationDescriptor? by MetadataProperty(default = null)
 

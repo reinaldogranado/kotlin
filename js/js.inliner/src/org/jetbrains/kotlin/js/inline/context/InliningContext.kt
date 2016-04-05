@@ -16,8 +16,8 @@
 
 package org.jetbrains.kotlin.js.inline.context
 
-import com.google.dart.compiler.backend.js.ast.*
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import com.google.dart.compiler.backend.js.ast.JsContext
+import com.google.dart.compiler.backend.js.ast.JsStatement
 
 interface InliningContext {
     val statementContext: JsContext<JsStatement>

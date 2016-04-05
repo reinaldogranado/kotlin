@@ -184,11 +184,7 @@ internal class TemporaryAssignmentElimination(private val root: JsBlock) {
                     val usage = getUsage(name)
                     if (usage != null) {
                         val replacement = when (usage) {
-                            is Usage.Return ->
-                                JsReturn(value).apply {
-                                    source(x.expression.source)
-                                    usage.statements.mapNotNull { it as? HasMetadata }.forEach { copyMetadataFrom(it) }
-                                }
+                            is Usage.Return -> JsReturn(value).apply { source(x.expression.source) }
                             is Usage.VariableAssignment -> {
                                 val expr = JsAstUtils.assignment(usage.target.makeRef(), value).source(x.expression.source)
                                 val statement = JsExpressionStatement(expr)

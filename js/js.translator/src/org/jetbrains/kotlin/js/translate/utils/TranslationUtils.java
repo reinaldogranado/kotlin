@@ -295,14 +295,14 @@ public final class TranslationUtils {
     }
 
     @Nullable
-    public static DeclarationDescriptor getNonLocalReturnTarget(@NotNull KtExpression expression, @NotNull TranslationContext context) {
+    public static DeclarationDescriptor getNonLocalReturnTarget(
+        @NotNull KtReturnExpression expression,
+        @NotNull TranslationContext context
+    ) {
         DeclarationDescriptor descriptor = context.getDeclarationDescriptor();
         assert descriptor instanceof CallableMemberDescriptor : "Return expression can only be inside callable declaration: " +
                                                                 PsiUtilsKt.getTextWithLocation(expression);
-        KtSimpleNameExpression target = null;
-        if (expression instanceof KtReturnExpression) {
-            target = ((KtReturnExpression) expression).getTargetLabel();
-        }
+        KtSimpleNameExpression target = expression.getTargetLabel();
 
         //call inside lambda
         if (isFunctionLiteral(descriptor) || isFunctionExpression(descriptor)) {
