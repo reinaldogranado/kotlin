@@ -312,6 +312,7 @@ class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: 
                         parent.addAfter(psiFactory.createWhiteSpace(commentTreeElement.spaceBefore), anchorElement)
                     }
 
+                    // make sure that there is a line break after EOL_COMMENT
                     if (restored.tokenType == KtTokens.EOL_COMMENT) {
                         val whiteSpace = restored.nextLeaf(skipEmptyElements = true) as? PsiWhiteSpace
                         if (whiteSpace == null) {

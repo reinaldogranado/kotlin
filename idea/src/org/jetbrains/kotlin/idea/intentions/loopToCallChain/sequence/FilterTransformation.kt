@@ -43,6 +43,21 @@ class FilterTransformation(
     }
 
     //TODO: merge subsequent filters
+    /**
+     * Matches:
+     *     for (...) {
+     *         if (<condition>) {
+     *             ...
+     *         }
+     *     }
+     *
+     * or
+     *
+     *     for (...) {
+     *         if (<condition>) break
+     *         ...
+     *     }
+     */
     object Matcher : SequenceTransformationMatcher {
         override fun match(state: MatchingState): SequenceTransformationMatch? {
             if (state.indexVariable != null) return null //TODO?
